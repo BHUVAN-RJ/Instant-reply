@@ -17,6 +17,10 @@
       #status { margin-top: 10px; min-height: 18px; }
       #status.error { color: #dc2626; }
       #status.ok { color: #16a34a; }
+      fieldset.look { border: 1px solid var(--line); border-radius: 6px; margin: 12px 0 0; padding: 6px 10px 8px; display: flex; gap: 14px; }
+      fieldset.look legend { font-weight: 600; padding: 0 4px; }
+      fieldset.look label { display: inline-flex; align-items: center; gap: 5px; margin: 0; font-weight: 400; cursor: pointer; }
+      fieldset.look input { width: auto; }
     </style>
   </head>
   <body>
@@ -34,6 +38,11 @@
       <p id="status"></p>
     </form>
     <p class="hint">Stored only on this computer and sent only to openrouter.ai.</p>
+    <fieldset class="look">
+      <legend>Look in Gmail</legend>
+      <label><input type="radio" name="look" value="fragpunk" /> FragPunk</label>
+      <label><input type="radio" name="look" value="beach" /> Beach</label>
+    </fieldset>
     <div class="row"><button type="button" id="voice">Your voice and prompts</button></div>
     <script type="module" src="./main.ts"></script>
   </body>

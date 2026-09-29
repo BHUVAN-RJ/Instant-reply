@@ -1,6 +1,10 @@
 import type { Thread, ThreadSession } from "@instant-reply/core";
 import { SESSION_PREFIX, createChromeStore } from "../adapters/chrome-store";
 import type { DraftResponse, Message } from "../messages";
+import { LOOK_KEY, asLook, getLook, type Look } from "../look";
+import { beachSweep } from "./beach/fx";
+import { PALETTES, californiaPalette, type PaletteId } from "./beach/palette";
+import { buildBeachStyles } from "./beach/styles";
 import { readBox, writeBox } from "./editor";
 import { stamp, sweep } from "./fx";
 import { tagIcons } from "./icons";
@@ -11,19 +15,44 @@ import { readMessages } from "./thread";
 // Runs inside Gmail:
 // - An "Instant Reply" switch in every reply box turns the agent on or off for that thread (every
 //   thread starts off). Off, it sits next to Send; on, it moves right, just before Discard.
-// - While a thread is on, its reply boxes are dressed in the FragPunk look (styles.ts) and get a
-//   "Refactor!" button next to Send. Refactor sends the box and the whole thread to the agent and
-//   sweeps the draft into the box (fx.ts). Nothing is ever sent by the extension.
+// - While a thread is on, its reply boxes are dressed in the chosen look and get a Refactor button next
+//   to Send. Refactor sends the box and the whole thread to the agent and animates the draft into the
+//   box. Nothing is ever sent by the extension.
+// - Two looks, picked in the toolbar popup: FragPunk (styles.ts, fx.ts: glitch sweep and a New! sticker)
+//   and Beach (beach/: a wave over sand, palettes by California time).
 // - When a thread that is on gets sent, the sent text goes to the agent, which compares it with its
 //   last draft to learn the user's voice (core/learn.ts).
 // Still to do: compose windows (new emails).
 
-const REFACTOR_LABEL = "Refactor!";
+let look: Look = "fragpunk";
+const refactorLabel = () => (look === "beach" ? "Refactor" : "Refactor!");
+
+const styleEl = document.createElement("style");
+
+/** Swaps the stylesheet and drops everything drawn in the old look; the next sync redraws it. */
+function applyLook(next: Look): void {
+  look = next;
+  styleEl.textContent =
+    look === "beach"
+      ? buildBeachStyles({ fredoka: chrome.runtime.getURL("fonts/fredoka-600.woff2"), pacifico: chrome.runtime.getURL("fonts/pacifico.woff2") })
+      : buildStyles(chrome.runtime.getURL("fonts/permanent-marker.woff2"));
+  document.querySelectorAll(`.${SKIN_CLASS}`).forEach((el) => el.remove());
+  document.querySelectorAll<HTMLButtonElement>(`.${REFACTOR_CLASS}:not(:disabled)`).forEach((b) => (b.textContent = refactorLabel()));
+  scheduleSync();
+}
 
 function injectStyles(): void {
-  const style = document.createElement("style");
-  style.textContent = buildStyles(chrome.runtime.getURL("fonts/permanent-marker.woff2"));
-  document.head.append(style);
+  document.head.append(styleEl);
+  void getLook().then(applyLook);
+}
+
+/** The beach palette follows California time; it is held still while a wave runs in that box. */
+function paintPalette(box: HTMLElement, palette: PaletteId): void {
+  if (box.dataset.irPal !== palette) box.dataset.irPal = palette;
+  const avatar = document.querySelector<HTMLElement>(`[data-ir-avatar="${box.dataset.composeId}"]`);
+  for (const el of [avatar, avatar?.parentElement?.hasAttribute("data-ir-avatar-wrap") ? avatar.parentElement : null]) {
+    if (el && el.dataset.irPal !== palette) el.dataset.irPal = palette;
+  }
 }
 
 // --- Thread state -------------------------------------------------------------
@@ -43,6 +72,7 @@ async function isThreadActive(threadId: string): Promise<boolean> {
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
+  if (LOOK_KEY in changes) applyLook(asLook(changes[LOOK_KEY].newValue));
   for (const [key, change] of Object.entries(changes)) {
     if (!key.startsWith(SESSION_PREFIX)) continue;
     const session = change.newValue as ThreadSession | undefined;
@@ -125,7 +155,7 @@ async function collectThread(box: HTMLElement, threadId: string): Promise<Thread
 
 function flash(button: HTMLButtonElement, text: string, ms = 2500): void {
   button.textContent = text;
-  setTimeout(() => (button.textContent = REFACTOR_LABEL), ms);
+  setTimeout(() => (button.textContent = refactorLabel()), ms);
 }
 
 async function refactor(box: HTMLElement, button: HTMLButtonElement): Promise<void> {
@@ -138,14 +168,23 @@ async function refactor(box: HTMLElement, button: HTMLButtonElement): Promise<vo
   button.disabled = true;
   button.textContent = "Refactoring";
   editor.classList.add(BUSY_EDITOR_CLASS);
+  // The palette is read when Refactor is pressed and held for the whole wave.
+  const palette = californiaPalette();
+  box.dataset.irPalLock = "";
+  paintPalette(box, palette);
   try {
     const message: Message = { type: "draft", request: { thread: await collectThread(box, threadId), boxText } };
     const response: DraftResponse = await chrome.runtime.sendMessage(message);
     editor.classList.remove(BUSY_EDITOR_CLASS);
     if (response.ok) {
-      await sweep(box, editor, () => writeBox(editor, response.draft));
-      stamp(box, editor);
-      button.textContent = REFACTOR_LABEL;
+      const write = () => writeBox(editor, response.draft);
+      if (look === "beach") {
+        await beachSweep(box, editor, write, PALETTES[palette]);
+      } else {
+        await sweep(box, editor, write);
+        stamp(box, editor);
+      }
+      button.textContent = refactorLabel();
     } else if (response.error === "no-key") {
       flash(button, "Add your OpenRouter key", 4000);
       await chrome.runtime.sendMessage({ type: "open-settings" } satisfies Message);
@@ -159,6 +198,7 @@ async function refactor(box: HTMLElement, button: HTMLButtonElement): Promise<vo
   } finally {
     editor.classList.remove(BUSY_EDITOR_CLASS);
     button.disabled = false;
+    delete box.dataset.irPalLock;
   }
 }
 
@@ -166,7 +206,7 @@ function createRefactorButton(box: HTMLElement): HTMLButtonElement {
   const button = document.createElement("button");
   button.type = "button";
   button.className = REFACTOR_CLASS;
-  button.textContent = REFACTOR_LABEL;
+  button.textContent = refactorLabel();
   button.title = "Send this box to Instant Reply instead of the recipient";
   button.addEventListener("click", (event) => {
     event.preventDefault();
@@ -202,7 +242,9 @@ function createSkin(): HTMLElement {
   skin.className = SKIN_CLASS;
   skin.setAttribute("aria-hidden", "true");
   skin.innerHTML =
-    '<i class="ir-sh"></i><i class="ir-under"></i><i class="ir-ink"></i><i class="ir-paper"></i><b class="ir-bar-sh"></b><b class="ir-bar"></b>';
+    look === "beach"
+      ? '<i class="ir-card"></i><i class="ir-lagoon"></i><i class="ir-foam"></i>'
+      : '<i class="ir-sh"></i><i class="ir-under"></i><i class="ir-ink"></i><i class="ir-paper"></i><b class="ir-bar-sh"></b><b class="ir-bar"></b>';
   return skin;
 }
 
@@ -324,6 +366,7 @@ async function syncReplyBoxes(): Promise<void> {
     if (!toggle) toggle = createToggle(threadId, active);
     else if (toggle.dataset.active !== String(active)) renderToggle(toggle, threadId, active);
     placeToggle(box, toggle, sendGroup, active);
+    if (look === "beach" && !("irPalLock" in box.dataset)) paintPalette(box, californiaPalette());
 
     box.classList.toggle(ACTIVE_BOX_CLASS, active);
     const existing = box.querySelector(`.${REFACTOR_CLASS}`);

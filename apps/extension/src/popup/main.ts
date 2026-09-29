@@ -1,3 +1,4 @@
+import { asLook, getLook, setLook } from "../look";
 import { DEFAULT_MODEL, OPENROUTER_KEY_URL, getSettings, saveSettings } from "../settings";
 
 const form = document.querySelector<HTMLFormElement>("#form")!;
@@ -62,5 +63,10 @@ removeButton.addEventListener("click", async () => {
 });
 
 document.querySelector("#voice")!.addEventListener("click", () => void chrome.runtime.openOptionsPage());
+
+// The look switches live in every open Gmail tab.
+const lookInputs = document.querySelectorAll<HTMLInputElement>('input[name="look"]');
+void getLook().then((look) => lookInputs.forEach((input) => (input.checked = input.value === look)));
+lookInputs.forEach((input) => input.addEventListener("change", () => void setLook(asLook(input.value))));
 
 void render();

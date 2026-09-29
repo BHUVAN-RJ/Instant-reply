@@ -1,6 +1,6 @@
 # Instant Reply: status and plan
 
-Last updated 2026-09-29 (voice learning, settings page, beach look decided).
+Last updated 2026-09-29 (beach look built with a FragPunk/Beach switch).
 
 ## Product decisions (agreed)
 
@@ -30,7 +30,7 @@ Last updated 2026-09-29 (voice learning, settings page, beach look decided).
   - The user's round avatar left of the card is found by probing the page just left of the card (it can sit outside the box) and cut into a tilted octagon with hard shadows; unmarked when the thread is turned off.
   - Theme: `data-ir-theme` light or dark is read from the card's background before it is cleared; edges and icons switch between ink and near white.
   - Refactor animation: old text flickers while waiting; the draft is written underneath and a snapshot of the old text is torn away by an ink glitch block (24 rows, 600ms), then a "New!" sticker slams on and peels off. Reduced motion skips it.
-- Look and feel, decided but not built: the **beach style (design v2, final)** replaces FragPunk, to be switched on when the extension is shared with a friend in California (inspiration from Moana only, no characters, logo or title lettering). Everything learned in the live tests above carries over. Reference mockups are saved in `docs/design/` (open the HTML files in a browser).
+- Look and feel, built on the `beach-style` branch: the **beach style (design v2, final)** sits next to FragPunk. The popup has a "Look in Gmail" switch (FragPunk or Beach, FragPunk by default), stored under its own `look` key so the content script never reads the settings holding the API key; open Gmail tabs switch live. Beach is meant for the friend in California (inspiration from Moana only, no characters, logo or title lettering). Everything learned in the live tests above carries over. Reference mockups are saved in `docs/design/` (open the HTML files in a browser).
   - These are the finalized settings. The beach style is not changed until the user says to update it.
   - Palette follows California time (America/Los_Angeles), read when Refactor is pressed and held for the whole wave: 5 to 11 Lagoon, 11 to 17 Hibiscus Reef, 17 to 20 Tapa Sunset, otherwise Night Voyage. No setting to override it.
   - Reply card: round, with a thin leaf green edge. The To line is shallow lagoon water that ends in a scalloped foam line above the body, so the body reads as the beach the wave runs onto.
@@ -40,6 +40,7 @@ Last updated 2026-09-29 (voice learning, settings page, beach look decided).
   - Beach finds: 2 to 4 per wave, picked at random from nine (three starfish colours, message in a bottle, crab that runs off a side, baby turtle that crawls up toward the sea, hermit crab that shuffles, octopus, jellyfish), placed at random on empty sand away from the text. They fade with the sand.
   - "New": no sticker. One find per wave carries the word, placed first and drawn bigger so it is readable, shrinking only when the draft leaves no room: a crab holding a "New" sign (it waits longer before running off), a bottle with a "New" note inside, a starfish with "New" on it, a hermit crab with a "New" tag on its shell, or a card half buried in the sand.
   - Numbers ("Beach v1"): wave 2800ms, unevenness 0.6, run up 0.36 of the wave, hang 0.05, scallop depth 8px and width 44px, foam 1.5x, sand fade in 140ms, dry 2200ms, hold 1600ms, fade out 700ms, finds 2 to 4 at 10 to 17px (the "New" carrier at 24px), 10px from text, 23px apart, critter speed 1x. Tuned against a 881px wide card, 187px body, 13.5px text at 1.2 line height; the real box sizes come from Gmail.
+  - Code: `content/beach/` holds the palettes and California time rule (`palette.ts`), the stylesheet (`styles.ts`, colours per palette on `data-ir-pal`, shapes as inline SVG backgrounds), the wave (`fx.ts`, layers over the writing area: sand, the new text, the old text, the water) and the finds (`finds.ts`). Fredoka and Pacifico are bundled in `public/fonts` (Open Font License).
   - A friend's copy uses their own OpenRouter key, and their learning stays on their computer, separate from the user's.
 - Plugin registry at `apps/extension/src/plugins/index.ts` (empty).
 - Voice learning (core `learn.ts`, tested):
@@ -52,7 +53,7 @@ Last updated 2026-09-29 (voice learning, settings page, beach look decided).
 ## Next
 
 1. **Check learning live.** Confirm the Send hook fires on the real Send button and Cmd+Enter, and that notes read well after a few emails.
-2. **Beach style.** Build design v2 from the decisions above when sharing with the friend, on its own branch.
+2. **Beach style, live check.** Switch to Beach and check in Gmail: the lagoon To line and foam over the real header, Send and its arrow as pebbles, the switch and Refactor shapes, icon petals, the avatar crown, and the wave over real drafts of different lengths. Merge `beach-style` into main once it looks right.
 3. **Compose windows (new emails).** Switch in the compose footer, session keyed by draft id (`input[name="draft"]`), move history to the thread id after sending if possible.
 4. **Job app connection.** Decide transport once the job app's stack is known: local bridge service, `externally_connectable` messages, native messaging, or importing `@instant-reply/core` directly. Then implement a `ContextProvider` (role, application status for recruiter threads) and an `EventSink` (update status on replies).
 5. **Polish.** Keyboard shortcut for Refactor (Cmd+Shift+Enter), optional re-collapse after Expand all, extension icon, error messages surfaced in the UI instead of the console, localized Expand all label.

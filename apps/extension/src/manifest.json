@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "Instant Reply",
+  "version": "0.0.1",
+  "description": "Thread-aware reply drafting for Gmail in your own voice.",
+  "permissions": [
+    "storage",
+    "unlimitedStorage"
+  ],
+  "host_permissions": [
+    "https://mail.google.com/*",
+    "https://openrouter.ai/*"
+  ],
+  "background": {
+    "service_worker": "src/background/index.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mail.google.com/*"
+      ],
+      "js": [
+        "src/content/gmail.ts"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "src/options/index.html",
+  "action": {
+    "default_title": "Instant Reply",
+    "default_popup": "src/popup/index.html"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "fonts/*"
+      ],
+      "matches": [
+        "https://mail.google.com/*"
+      ]
+    }
+  ]
+}

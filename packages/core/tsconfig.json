@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  // No chrome types here: the core must run in any host (extension, Node, another app).
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "types": []
+  },
+  "include": ["src", "test"]
+}

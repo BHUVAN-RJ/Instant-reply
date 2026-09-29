@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Instant Reply settings</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6f4ef; --card: #ffffff; --ink: #1d2a30; --muted: #5d6b71; --line: #e2ddd2;
+        --accent: #0b7f8f; --accent-soft: #dff3f4; --warn: #b4442c; --bubble: #eef6f6; --mine: #0b7f8f; --mine-ink: #fff;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root { --bg: #11181b; --card: #1a2428; --ink: #e8eef0; --muted: #9aabb1; --line: #2c3a3f; --accent: #45c3cf; --accent-soft: #173a3f; --warn: #f08a70; --bubble: #203034; --mine: #2a8c97; }
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+      .wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 48px; }
+      header { margin-bottom: 22px; }
+      .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+      h1 { font-size: 28px; line-height: 1.15; margin: 4px 0 6px; text-wrap: balance; }
+      .lede { color: var(--muted); margin: 0; max-width: 68ch; }
+      .banner { margin-top: 14px; padding: 10px 14px; border-radius: 10px; background: var(--accent-soft); }
+      .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); gap: 20px; align-items: start; }
+      @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+      .col { display: grid; gap: 16px; }
+      section.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+      h2 { font-size: 17px; margin: 0 0 4px; }
+      h3 { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 16px 0 6px; }
+      .sub { color: var(--muted); margin: 0 0 8px; font-size: 13px; }
+      ul.notes { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+      .empty { color: var(--muted); font-style: italic; margin: 0; }
+      .rules li { position: relative; }
+      .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); margin-left: 6px; vertical-align: 1px; }
+      .switch { display: flex; gap: 10px; align-items: center; font-weight: 600; cursor: pointer; }
+      .switch input { width: 18px; height: 18px; accent-color: var(--accent); }
+      .stats { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 10px 0 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+      .stats b { color: var(--ink); }
+      .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      button { font: inherit; font-weight: 600; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+      button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+      button.danger { color: var(--warn); border-color: currentColor; }
+      button:disabled { opacity: .55; cursor: progress; }
+      button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+      .confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; padding: 10px 12px; border: 1px solid var(--warn); border-radius: 10px; }
+      .status { min-height: 20px; margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+      .status.error { color: var(--warn); }
+      .chat { position: sticky; top: 16px; display: flex; flex-direction: column; max-height: calc(100vh - 32px); }
+      .log { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px 2px 12px; min-height: 180px; }
+      .msg { max-width: 88%; padding: 9px 12px; border-radius: 12px; white-space: pre-wrap; background: var(--bubble); }
+      .msg.user { align-self: flex-end; background: var(--mine); color: var(--mine-ink); border-bottom-right-radius: 4px; }
+      .msg.assistant { align-self: flex-start; border-bottom-left-radius: 4px; }
+      .msg.note { align-self: center; background: transparent; color: var(--muted); font-size: 12px; padding: 0; }
+      .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+      .chips button { font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 999px; }
+      form.ask { display: grid; gap: 8px; }
+      textarea { width: 100%; min-height: 72px; resize: vertical; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: inherit; }
+      .hint { color: var(--muted); font-size: 12px; margin: 0; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="eyebrow">Instant Reply</div>
+        <h1>Your voice and prompts</h1>
+        <p class="lede">What the agent is told every time it drafts, what it has learned about you, and how that shapes your emails. To change anything, ask in the chat. The notes are never edited by hand, so they stay consistent.</p>
+        <p class="banner" id="no-key" hidden>Add your OpenRouter key in the Instant Reply toolbar popup to chat and to learn. Changes you make to drafts are still collected until then.</p>
+      </header>
+
+      <div class="grid">
+        <div class="col">
+          <section class="card" aria-labelledby="knows-h">
+            <h2 id="knows-h">What it knows about you</h2>
+            <p class="sub" id="knows-meta"></p>
+            <h3>About you</h3>
+            <div id="about"></div>
+            <h3>How you write</h3>
+            <div id="style"></div>
+            <div id="other-wrap" hidden><h3>Other notes</h3><div id="other"></div></div>
+          </section>
+
+          <section class="card" aria-labelledby="rules-h">
+            <h2 id="rules-h">How it changes your emails</h2>
+            <p class="sub">Sent with every draft, in this order: the fixed rules, then what it knows about you, then your own rules.</p>
+            <h3>Always <span class="tag">Fixed</span></h3>
+            <ul class="notes rules" id="base"></ul>
+            <h3>Rules you asked for</h3>
+            <div id="yours"></div>
+          </section>
+
+          <section class="card" aria-labelledby="learn-h">
+            <h2 id="learn-h">Learning</h2>
+            <p class="sub">It learns when you send a draft back with changes, and when you edit a draft before sending it. Every few changes it rewrites its notes about you.</p>
+            <label class="switch" for="learning"><input type="checkbox" id="learning" /> Learn from my changes</label>
+            <div class="stats" id="stats"></div>
+            <div class="row">
+              <button type="button" class="primary" id="learn-now">Learn now</button>
+              <button type="button" class="danger" id="forget">Forget everything</button>
+            </div>
+            <div class="confirm" id="confirm" hidden>
+              <span>Forget all notes, rules and this chat? Drafts you already made will not be learned again.</span>
+              <button type="button" class="danger" id="forget-yes">Forget</button>
+              <button type="button" id="forget-no">Keep</button>
+            </div>
+            <p class="status" id="learn-status" role="status"></p>
+          </section>
+        </div>
+
+        <section class="card chat" aria-labelledby="chat-h">
+          <h2 id="chat-h">Ask or change something</h2>
+          <p class="sub">For example a new rule, a correction, or a question about what it knows.</p>
+          <div class="log" id="log" aria-live="polite"></div>
+          <div class="chips" id="chips">
+            <button type="button">What do you know about me?</button>
+            <button type="button">Keep my replies short</button>
+            <button type="button">Sign off with just my first name</button>
+          </div>
+          <form class="ask" id="ask">
+            <label for="message" class="hint">Enter sends, Shift+Enter adds a line</label>
+            <textarea id="message" placeholder="Tell it what to change, or ask a question"></textarea>
+            <div class="row"><button type="submit" class="primary" id="send">Send</button></div>
+          </form>
+        </section>
+      </div>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

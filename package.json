@@ -1,0 +1,13 @@
+{
+  "name": "instant-reply",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "dev": "npm run dev -w @instant-reply/extension",
+    "build": "npm run typecheck && npm run build -w @instant-reply/extension",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm test --workspaces --if-present"
+  }
+}

@@ -1,0 +1,1106 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>
+<title>Instant Reply Shore Tuning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Pacifico&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --ink: #fdf3e1;
+  --ink-2: #fffaf0;
+  --ink-3: #f0dcb8;
+  --paper: #12384a;
+  --dim: #52707c;
+  --mag: #0fa3b8;
+  --acid: #ff7a59;
+  --cyan: #19e3ff;
+  --violet: #7c3aed;
+  --gmail-bg: #ffffff;
+  --gmail-line: #dadce0;
+  --gmail-text: #202124;
+  --gmail-dim: #5f6368;
+  --display: "Fredoka", "Trebuchet MS", sans-serif;
+  --ui: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --marker: "Pacifico", cursive;
+}
+* { box-sizing: border-box; }
+body { background: var(--ink); color: var(--paper); font: 15px/1.5 system-ui, sans-serif; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 32px 64px; }
+
+header.top { display: grid; gap: 14px; margin-bottom: 20px; }
+.eyebrow { font: 700 12px/1 var(--ui); letter-spacing: .18em; text-transform: uppercase; color: var(--acid); }
+h1 { font: 400 clamp(40px, 7vw, 76px)/.92 var(--display); margin: 0; text-transform: uppercase; letter-spacing: .01em; text-wrap: balance; }
+h1 span { color: var(--mag); -webkit-text-stroke: 0; text-shadow: 4px 4px 0 var(--cyan); }
+.lede { max-width: 64ch; color: var(--dim); margin: 0; }
+.lede b { color: var(--paper); }
+
+.controls { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center;
+  background: color-mix(in srgb, var(--ink) 88%, transparent); backdrop-filter: blur(8px); padding: 12px 0; border-bottom: 2px solid var(--ink-3); margin-bottom: 28px; }
+.ctl { display: flex; align-items: center; gap: 8px; font: 700 12px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.seg { display: inline-flex; border: 2px solid var(--ink-3); }
+.seg button { font: 700 12px/1 var(--ui); letter-spacing: .06em; text-transform: uppercase; padding: 8px 10px; border: 0; background: transparent; color: var(--dim); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--acid); color: var(--ink); }
+.seg button:focus-visible, .ctl input:focus-visible, .go:focus-visible, .reset:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.ctl input[type=range] { accent-color: var(--mag); width: 120px; }
+.ctl output { color: var(--paper); font-variant-numeric: tabular-nums; min-width: 5ch; }
+
+.grid { display: grid; gap: 28px; }
+.variant { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 24px; padding: 22px; background: var(--ink-2); border: 2px solid var(--ink-3); position: relative; }
+.variant::before { content: attr(data-tag); position: absolute; top: -14px; left: 18px; font: 400 18px/1 var(--display); letter-spacing: .04em; padding: 5px 10px 4px; background: var(--tag, var(--mag)); color: var(--ink); transform: skewX(-10deg); }
+@media (max-width: 820px) { .variant { grid-template-columns: 1fr; } }
+
+.info h2 { font: 400 34px/1 var(--display); text-transform: uppercase; margin: 6px 0 10px; letter-spacing: .01em; }
+.info p { margin: 0 0 12px; color: var(--dim); max-width: 60ch; }
+.info ul { margin: 0 0 14px; padding-left: 18px; color: var(--dim); display: grid; gap: 4px; }
+.info li b { color: var(--paper); font-weight: 600; }
+.swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+.sw { font: 700 11px/1 var(--ui); letter-spacing: .06em; padding: 8px 8px 6px; min-width: 76px; color: var(--ink); }
+.sw.dark { color: var(--paper); outline: 1px solid var(--ink-3); }
+
+/* mock gmail */
+.gmail { background: var(--gmail-bg); color: var(--gmail-text); font: 14px/1.45 Arial, Helvetica, sans-serif; border-radius: 8px; box-shadow: 0 1px 0 #0004; }
+.g-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--gmail-line); }
+.g-subj { font-size: 16px; color: var(--gmail-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g-msg { padding: 12px 14px 4px; display: flex; gap: 10px; }
+.g-av { width: 32px; height: 32px; border-radius: 50%; background: #1a73e8; color: #fff; display: grid; place-items: center; font-weight: 700; flex: none; }
+.g-from { font-weight: 700; font-size: 13px; }
+.g-from span { font-weight: 400; color: var(--gmail-dim); }
+.g-body { color: var(--gmail-dim); font-size: 13px; margin-top: 2px; }
+.reply { margin: 12px 14px 14px; border: 1px solid var(--gmail-line); border-radius: 8px; box-shadow: 0 1px 3px #0002; position: relative; }
+.r-to { padding: 8px 12px; font-size: 13px; color: var(--gmail-dim); border-bottom: 1px solid #f1f3f4; }
+.box { position: relative; overflow: hidden; min-height: 168px; }
+.layer { padding: 12px; white-space: pre-wrap; font: 14px/1.5 Arial, Helvetica, sans-serif; }
+.layer.b { position: absolute; inset: 0; clip-path: inset(0 100% 0 0); }
+.layer.a, .layer.b { background: var(--gmail-bg); }
+.blank { color: transparent; }
+.band { position: absolute; top: -12px; bottom: -12px; left: 0; pointer-events: none; opacity: 0; will-change: transform; }
+.r-foot { display: flex; align-items: center; gap: 8px; padding: 8px 12px 10px; }
+.send { background: #0b57d0; color: #fff; border: 0; border-radius: 18px; padding: 9px 18px; font: 500 14px/1 Arial, sans-serif; }
+.reset { margin-left: auto; background: transparent; border: 1px solid var(--gmail-line); color: var(--gmail-dim); border-radius: 4px; padding: 6px 10px; font: 12px/1 Arial, sans-serif; cursor: pointer; }
+.go { cursor: pointer; }
+.go:disabled { cursor: progress; }
+
+
+.note { margin-top: 36px; padding: 18px 20px; border: 2px dashed var(--ink-3); color: var(--dim); max-width: 78ch; }
+.note h3 { font: 700 13px/1 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--acid); margin: 0 0 10px; }
+.note p { margin: 0 0 8px; }
+.note b { color: var(--paper); }
+
+/* ===== page, re-dressed for the beach ===== */
+h1 { text-transform: none; letter-spacing: 0; font-weight: 600; }
+h1 span { color: var(--mag); text-shadow: 3px 3px 0 var(--acid); }
+.seg button[aria-pressed="true"] { color: #fff; }
+.variant { border-radius: 18px; }
+.variant::before { transform: none; border-radius: 999px; color: #fff; }
+.gmail { border-radius: 12px; box-shadow: 0 2px 10px rgba(18,56,74,.12); }
+
+/* ===== mock reply box structure (mirrors Gmail: avatar outside the card, To line, body, footer) ===== */
+.rwrap { position: relative; margin: 12px 14px 14px 58px; }
+.me { position: absolute; left: -46px; top: 4px; width: 36px; height: 36px; border-radius: 50%; background: #8e44ad; color: #fff; display: grid; place-items: center; font: 500 17px/1 Arial, sans-serif; }
+.reply { margin: 0; border: 1px solid var(--gmail-line); border-radius: 16px; box-shadow: 0 1px 3px #0002; position: relative; background: #fff; }
+.r-to { padding: 10px 14px; font-size: 13px; color: var(--gmail-dim); border-bottom: 1px solid #f1f3f4; display: flex; gap: 10px; align-items: center; }
+.r-to .arr { font-size: 15px; }
+.layer.a, .layer.b { background: transparent; }
+.layer.a { position: relative; z-index: 1; } .layer.b { z-index: 1; }
+.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+.r-foot { display: flex; align-items: center; gap: 6px; padding: 8px 10px 10px 12px; flex-wrap: wrap; }
+.sendgrp { display: inline-flex; border-radius: 18px; overflow: hidden; }
+.send { border: 0; background: #0b57d0; color: #fff; padding: 10px 18px; font: 500 14px/1 Arial, sans-serif; cursor: pointer; }
+.more { border: 0; border-left: 1px solid rgba(255,255,255,.35); background: #0b57d0; color: #fff; padding: 0 10px; cursor: pointer; }
+.go { display: none; }
+.icons { display: flex; gap: 2px; }
+.ic { width: 34px; height: 34px; display: grid; place-items: center; border: 0; background: transparent; border-radius: 50%; cursor: pointer; color: var(--gmail-dim); --ic: #5f6368; --acc: #5f6368; }
+.ic:hover { background: #f1f3f4; }
+.ic svg { width: 21px; height: 21px; fill: none; stroke: var(--ic); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.ic svg .a { fill: var(--acc); stroke: var(--ic); stroke-width: 1.4; }
+.ic svg .n { fill: none; }
+.spacer { flex: 1; }
+.tog { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 14px; border: 1.5px dashed #9aa0a6; border-radius: 999px; background: transparent; color: #5f6368; font: 500 13px/1 var(--ui); cursor: pointer; }
+.tog i { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid currentColor; }
+.ic.trash svg { width: 21px; height: 21px; }
+.skin { position: absolute; inset: 0; pointer-events: none; z-index: 0; display: none; }
+.reply > *:not(.skin):not(.stk) { position: relative; z-index: 1; }
+.stk { position: absolute; z-index: 6; pointer-events: none; opacity: 0; }
+
+/* ON state, per theme. %T% expands to the theme selector. */
+.sendgrp .send { border-radius: 0; }
+.pausebtn { font: 700 12px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; padding: 9px 14px; border: 2px solid var(--mag); background: transparent; color: var(--paper); cursor: pointer; min-width: 9ch; }
+.pausebtn[aria-pressed="true"] { background: var(--mag); color: #fff; }
+.pausebtn:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+kbd { font: 700 11px/1 var(--ui); border: 1px solid var(--ink-3); padding: 3px 5px; color: var(--paper); }
+.demo-ctl { display: flex; justify-content: flex-end; margin-top: 10px; }
+.demo-ctl .reset { margin-left: 0; background: transparent; border: 1px solid var(--ink-3); color: var(--dim); }
+.pausebtn, kbd { border-radius: 999px; } .seg { border-radius: 999px; overflow: hidden; } .variant::before { font-family: var(--display); font-weight: 600; }
+.info h2 { text-transform: none; font-weight: 600; }
+.variant[data-on="1"] .go { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 18px; border: 0; border-radius: 999px; font: 600 15px/1 var(--ui); cursor: pointer; transition: transform .15s; }
+.variant[data-on="1"] .go:hover { transform: translateY(-2px) rotate(-1deg); }
+.variant[data-on="1"] .ic.trash { width: 44px; height: 44px; } .variant[data-on="1"] .ic.trash svg { width: 27px; height: 27px; }
+.variant[data-on="1"] .tog { border-style: solid; color: #fff; }
+.variant[data-on="1"] .skin { display: block; }
+.variant[data-on="1"] .reply { border-color: transparent; box-shadow: none; }
+.variant[data-on="1"] .box.sweeping .layer.a { filter: blur(.4px); }
+
+/* S1 Lagoon: turquoise, foam white, coral */
+.variant[data-on="1"][data-bt="s1"] { --t-deep: #0b6fa4; --t-mid: #19b3c9; --t-light: #7ee6e8; --t-coral: #ff7a59; --t-sand: #fff4df; }
+.variant[data-on="1"][data-bt="s1"] .skin::before { content: ""; position: absolute; inset: -3px; border: 3px solid var(--t-mid); border-radius: 20px; box-shadow: 6px 7px 0 var(--t-light); }
+.variant[data-on="1"][data-bt="s1"] .skin::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -13px; height: 14px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 14'%3E%3Cpath d='M0 7 Q10 0 20 7 T40 7 V14 H0z' fill='%2319b3c9'/%3E%3Cpath d='M0 7 Q10 0 20 7 T40 7' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 40px 14px; }
+.variant[data-on="1"][data-bt="s1"] .r-to { background: linear-gradient(90deg, var(--t-mid), var(--t-light)); color: #fff; border-radius: 17px 17px 0 0; border-bottom: 0; font-weight: 600; position: relative; }
+.variant[data-on="1"][data-bt="s1"] .r-to::after { content: ""; position: absolute; left: 0; right: 0; bottom: -8px; height: 9px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 9'%3E%3Cpath d='M0 0 H30 V3 Q22.5 9 15 3 T0 3z' fill='%237ee6e8'/%3E%3C/svg%3E") repeat-x 0 0 / 30px 9px; }
+.variant[data-on="1"][data-bt="s1"] .r-to + .box { margin-top: 8px; }
+.variant[data-on="1"][data-bt="s1"] .send, .variant[data-on="1"][data-bt="s1"] .more { background: var(--t-deep); font: 600 15px/1 var(--ui); }
+.variant[data-on="1"][data-bt="s1"] .more { border-left-color: var(--t-light); }
+.variant[data-on="1"][data-bt="s1"] .go { background: var(--t-coral); color: #fff; box-shadow: 0 3px 0 #d9573a; }
+.variant[data-on="1"][data-bt="s1"] .ic { --ic: var(--t-deep); --acc: var(--t-light); }
+.variant[data-on="1"][data-bt="s1"] .ic:hover { background: #e3f8f8; --acc: var(--t-coral); }
+.variant[data-on="1"][data-bt="s1"] .tog { background: var(--t-mid); border-color: var(--t-mid); }
+.variant[data-on="1"][data-bt="s1"] .tog i { background: #fff; border-color: #fff; }
+.variant[data-on="1"][data-bt="s1"] .me { box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--t-mid), 0 0 0 9px var(--t-light); }
+.variant[data-on="1"][data-bt="s1"] .stk { right: 24px; top: 48px; }
+.variant[data-on="1"][data-bt="s1"] .stk .face { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; font: 400 22px/1 "Pacifico", cursive; color: var(--t-deep);
+  background: radial-gradient(circle at 32% 28%, #fff 0 12%, rgba(255,255,255,.85) 13% 30%, rgba(126,230,232,.55) 60%, rgba(25,179,201,.6) 100%); box-shadow: inset -6px -8px 14px rgba(11,111,164,.25), 0 4px 0 rgba(11,111,164,.25); }
+.variant[data-on="1"][data-bt="s1"] .stk.run { animation: bubble 2.6s forwards; }
+
+/* S2 Tapa Sunset: sand, cocoa, terracotta, sunset orange and pink */
+.variant[data-on="1"][data-bt="s2"] { --t-cocoa: #4a2c1d; --t-terra: #c65b3a; --t-sand: #f6e3c3; --t-orange: #ff8a3d; --t-pink: #ff5f7e; }
+.variant[data-on="1"][data-bt="s2"] .skin::before { content: ""; position: absolute; inset: -3px; border: 3px solid var(--t-cocoa); border-radius: 12px; box-shadow: 6px 6px 0 var(--t-orange); }
+.variant[data-on="1"][data-bt="s2"] .r-to { background: var(--t-sand); color: var(--t-cocoa); border-radius: 11px 11px 0 0; font-weight: 600; padding-top: 18px; position: relative; border-bottom: 2px solid var(--t-cocoa); }
+.variant[data-on="1"][data-bt="s2"] .r-to::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 10px; border-radius: 11px 11px 0 0;
+  background: linear-gradient(135deg, var(--t-cocoa) 25%, transparent 25%) 0 0 / 12px 10px, linear-gradient(225deg, var(--t-cocoa) 25%, transparent 25%) 0 0 / 12px 10px, linear-gradient(90deg, var(--t-terra), var(--t-orange)); }
+.variant[data-on="1"][data-bt="s2"] .send, .variant[data-on="1"][data-bt="s2"] .more { background: linear-gradient(90deg, var(--t-orange), var(--t-pink)); font: 600 15px/1 var(--ui); }
+.variant[data-on="1"][data-bt="s2"] .more { background: var(--t-pink); border-left-color: #fff6; }
+.variant[data-on="1"][data-bt="s2"] .go { background: var(--t-cocoa); color: var(--t-sand); box-shadow: 0 3px 0 #2e1a10; border-bottom: 3px dotted var(--t-orange); }
+.variant[data-on="1"][data-bt="s2"] .ic { --ic: var(--t-cocoa); --acc: var(--t-orange); }
+.variant[data-on="1"][data-bt="s2"] .ic:hover { background: #fbecd6; --acc: var(--t-pink); }
+.variant[data-on="1"][data-bt="s2"] .tog { background: var(--t-terra); border-color: var(--t-terra); }
+.variant[data-on="1"][data-bt="s2"] .tog i { background: var(--t-sand); border-color: var(--t-sand); }
+.variant[data-on="1"][data-bt="s2"] .me { box-shadow: 0 0 0 3px var(--t-sand), 0 0 0 6px var(--t-cocoa), 0 0 0 8px var(--t-orange); }
+.variant[data-on="1"][data-bt="s2"] .stk { right: 26px; top: 50px; }
+.variant[data-on="1"][data-bt="s2"] .stk .face { padding: 12px 22px 10px; background: var(--t-sand); color: var(--t-cocoa); font: 400 24px/1 "Pacifico", cursive; border-radius: 6px; border: 3px solid var(--t-cocoa); box-shadow: 4px 4px 0 var(--t-orange);
+  background-image: linear-gradient(135deg, var(--t-terra) 25%, transparent 25%), linear-gradient(225deg, var(--t-terra) 25%, transparent 25%); background-size: 10px 8px; background-repeat: repeat-x; background-position: 0 100%, 0 100%; }
+.variant[data-on="1"][data-bt="s2"] .stk.run { animation: washed 2.8s forwards; }
+
+/* S3 Hibiscus Reef: coral pink, palm green, turquoise, sunshine */
+.variant[data-on="1"][data-bt="s3"] { --t-pink: #ff4f81; --t-green: #1f9d6b; --t-turq: #19c3d6; --t-sun: #ffd23f; }
+.variant[data-on="1"][data-bt="s3"] .skin::before { content: ""; position: absolute; inset: -3px; border: 3px solid var(--t-green); border-radius: 24px; box-shadow: 0 0 0 6px #e7f8ef, 7px 8px 0 6px var(--t-turq); }
+.variant[data-on="1"][data-bt="s3"] .flower { position: absolute; width: 46px; height: 46px; z-index: 3; }
+.variant[data-on="1"][data-bt="s3"] .flower.f1 { left: -20px; top: -18px; transform: rotate(-12deg); } .variant[data-on="1"][data-bt="s3"] .flower.f2 { right: -18px; bottom: -16px; width: 38px; height: 38px; transform: rotate(20deg); }
+.variant[data-on="1"][data-bt="s3"] .r-to { color: var(--t-green); font-weight: 600; border-bottom: 2px dashed #bfe9d4; padding-left: 34px; }
+.variant[data-on="1"][data-bt="s3"] .send, .variant[data-on="1"][data-bt="s3"] .more { background: var(--t-green); font: 600 15px/1 var(--ui); }
+.variant[data-on="1"][data-bt="s3"] .more { border-left-color: #fff6; }
+.variant[data-on="1"][data-bt="s3"] .go { background: var(--t-pink); color: #fff; box-shadow: 0 3px 0 #d23864; text-shadow: 0 1px 0 #c02a55; }
+.variant[data-on="1"][data-bt="s3"] .ic { --ic: var(--t-green); --acc: var(--t-sun); }
+.variant[data-on="1"][data-bt="s3"] .ic:hover { background: #fff0f4; --acc: var(--t-pink); }
+.variant[data-on="1"][data-bt="s3"] .tog { background: var(--t-sun); border-color: var(--t-sun); color: #5a4300; }
+.variant[data-on="1"][data-bt="s3"] .tog i { background: var(--t-pink); border-color: var(--t-pink); }
+.variant[data-on="1"][data-bt="s3"] .me { clip-path: polygon(50% 0, 63% 12%, 80% 7%, 86% 24%, 100% 32%, 94% 50%, 100% 68%, 86% 76%, 80% 93%, 63% 88%, 50% 100%, 37% 88%, 20% 93%, 14% 76%, 0 68%, 6% 50%, 0 32%, 14% 24%, 20% 7%, 37% 12%); background: var(--t-pink); width: 42px; height: 42px; left: -49px; top: 1px; }
+.variant[data-on="1"][data-bt="s3"] .stk { right: 22px; top: 36px; }
+.variant[data-on="1"][data-bt="s3"] .stk .face { width: 96px; height: 96px; display: grid; place-items: center; position: relative; font: 400 20px/1 "Pacifico", cursive; color: #fff; text-shadow: 0 2px 0 #c02a55; }
+.variant[data-on="1"][data-bt="s3"] .stk .face svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+.variant[data-on="1"][data-bt="s3"] .stk.run { animation: flower 3s forwards; }
+
+/* S4 Night Voyage: wayfinding by the stars, night sea, gold stars, glowing surf */
+.variant[data-on="1"][data-bt="s4"] { --t-night: #0b1e3a; --t-deep: #12325e; --t-gold: #ffd98a; --t-glow: #6ff3ff; }
+.variant[data-on="1"][data-bt="s4"] .skin::before { content: ""; position: absolute; inset: -3px; border: 3px solid var(--t-night); border-radius: 16px; box-shadow: 0 0 0 1px var(--t-glow), 0 0 18px rgba(111,243,255,.55); }
+.variant[data-on="1"][data-bt="s4"] .r-to { color: #fff; font-weight: 600; border-radius: 15px 15px 0 0; border-bottom: 0;
+  background: radial-gradient(circle, #fff 0 1px, transparent 1.5px) 12px 6px / 46px 22px, radial-gradient(circle, var(--t-gold) 0 1.2px, transparent 1.8px) 30px 14px / 70px 26px, linear-gradient(90deg, var(--t-night), var(--t-deep)); }
+.variant[data-on="1"][data-bt="s4"] .send, .variant[data-on="1"][data-bt="s4"] .more { background: var(--t-night); color: var(--t-gold); font: 600 15px/1 var(--ui); }
+.variant[data-on="1"][data-bt="s4"] .more { border-left-color: #ffd98a55; }
+.variant[data-on="1"][data-bt="s4"] .go { background: var(--t-glow); color: var(--t-night); box-shadow: 0 0 14px rgba(111,243,255,.8), 0 3px 0 #2cc3d1; }
+.variant[data-on="1"][data-bt="s4"] .ic { --ic: var(--t-night); --acc: var(--t-gold); }
+.variant[data-on="1"][data-bt="s4"] .ic:hover { background: #e9f3ff; --acc: var(--t-glow); }
+.variant[data-on="1"][data-bt="s4"] .tog { background: var(--t-night); border-color: var(--t-night); color: var(--t-gold); }
+.variant[data-on="1"][data-bt="s4"] .tog i { background: var(--t-gold); border-color: var(--t-gold); box-shadow: 0 0 8px var(--t-gold); }
+.variant[data-on="1"][data-bt="s4"] .me { box-shadow: 0 0 0 3px var(--t-gold), 0 0 16px 3px rgba(255,217,138,.7); }
+.variant[data-on="1"][data-bt="s4"] .stk { right: 30px; top: 40px; }
+.variant[data-on="1"][data-bt="s4"] .stk .face { width: 94px; height: 94px; display: grid; place-items: center; position: relative; font: 600 17px/1 var(--ui); color: var(--t-night); filter: drop-shadow(0 0 10px rgba(255,217,138,.9)); }
+.variant[data-on="1"][data-bt="s4"] .stk .face svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+.variant[data-on="1"][data-bt="s4"] .stk.run { animation: star 2.8s forwards; }
+
+@keyframes bubble { 0% { opacity: 0; transform: translateY(30px) scale(.3); } 12% { opacity: 1; transform: translateY(0) scale(1.08); } 20%, 60% { opacity: 1; transform: translateY(0) scale(1); }
+  88% { opacity: 1; transform: translateY(-60px) scale(1.05); } 94% { opacity: .9; transform: translateY(-66px) scale(1.35); } 100% { opacity: 0; transform: translateY(-68px) scale(1.6); } }
+@keyframes washed { 0% { opacity: 0; transform: rotate(-4deg) translateX(-40px); } 12%, 60% { opacity: 1; transform: rotate(-4deg) translateX(0); }
+  100% { opacity: 0; transform: rotate(8deg) translate(160px, 30px); } }
+@keyframes flower { 0% { opacity: 0; transform: scale(0) rotate(-90deg); } 14% { opacity: 1; transform: scale(1.1) rotate(8deg); } 22%, 58% { opacity: 1; transform: scale(1) rotate(0); }
+  100% { opacity: 0; transform: translate(-40px, 260px) rotate(220deg) scale(.9); } }
+@keyframes star { 0% { opacity: 0; transform: scale(.2) rotate(-40deg); } 14% { opacity: 1; transform: scale(1.15) rotate(6deg); } 22%, 60% { opacity: 1; transform: scale(1) rotate(0); }
+  100% { opacity: 0; transform: translate(40px, -120px) scale(.4) rotate(40deg); } }
+
+@media (prefers-reduced-motion: reduce) { .stk.run { animation-duration: .01s; } }
+
+/* ===== round 17: shoreline, top to bottom ===== */
+.box { min-height: 206px; }
+.variant[data-on="1"] .box.sweeping .layer.a { filter: none; }
+.sandfx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.fx { z-index: 3; }
+.layer.b { clip-path: polygon(0 0, 0 0, 0 0); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px; }
+.chip { font: 600 12px/1 var(--ui); padding: 6px 10px 5px; border-radius: 999px; background: var(--ink); color: var(--paper); border: 1.5px solid var(--ink-3); }
+.chip.view { background: var(--mag); color: #fff; border-color: var(--mag); }
+.chip.now { background: var(--acid); color: #fff; border-color: var(--acid); }
+.info h3 { font: 700 12px/1 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--acid); margin: 14px 0 8px; }
+.loot { display: flex; flex-wrap: wrap; gap: 8px; }
+.loot canvas { width: 46px; height: 46px; background: #f7e6c4; border-radius: 12px; }
+.loot figure { margin: 0; display: grid; justify-items: center; gap: 4px; font: 500 11px/1.2 var(--ui); color: var(--dim); text-align: center; max-width: 64px; }
+.play { display: inline-flex; align-items: center; gap: 6px; font: 600 14px/1 var(--ui); border: 0; border-radius: 999px; padding: 10px 16px; background: var(--acid); color: #fff; cursor: pointer; box-shadow: 0 3px 0 #d9573a; }
+.play:disabled { opacity: .6; cursor: progress; }
+.play:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.demo-ctl { gap: 8px; }
+.allbtn { font: 600 13px/1 var(--ui); border: 2px solid var(--acid); background: transparent; color: var(--paper); border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+.allbtn:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+/* ===== round 20: tuning lab at real Gmail scale ===== */
+.wrap.lab-wrap { max-width: 1440px; }
+.lab-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+@media (max-width: 1100px) { .lab-grid { grid-template-columns: 1fr; } }
+.stage-scroll { overflow-x: auto; border-radius: 16px; box-shadow: 0 2px 14px rgba(18,56,74,.14); background: #f6f8fc; }
+.stage { --card-w: 621px; --body-h: 185px; --draft-font: 13px; --draft-lh: 1.2; width: max-content; min-width: 100%; padding: 16px 24px 28px; color: #1f1f1f; font: 14px/1.43 Arial, Helvetica, sans-serif; }
+.variant.lab { display: block; padding: 0; border: 0; background: transparent; border-radius: 0; }
+.variant.lab::before { display: none; }
+.g-tools { display: flex; gap: 18px; align-items: center; height: 48px; color: #444746; font-size: 13px; border-bottom: 1px solid #e3e3e3; margin-bottom: 14px; }
+.g-tools i { width: 20px; height: 20px; border-radius: 4px; background: #c4c7c5; display: inline-block; opacity: .7; }
+.g-sheet { background: #fff; border-radius: 16px; padding: 20px 20px 24px 16px; width: calc(var(--card-w) + 72px + 36px); }
+.g-h2 { font: 400 22px/28px "Google Sans", Arial, sans-serif; color: #1f1f1f; margin: 0 0 18px 56px; display: flex; gap: 10px; align-items: center; }
+.g-h2 span { font: 12px/1 Arial, sans-serif; background: #ddd; color: #444; padding: 3px 6px; border-radius: 4px; }
+.g-msg2 { display: grid; grid-template-columns: 40px 1fr; gap: 16px; margin-bottom: 18px; }
+.g-av2 { width: 40px; height: 40px; border-radius: 50%; background: #1a73e8; color: #fff; display: grid; place-items: center; font: 500 18px/1 Arial, sans-serif; }
+.g-who { font-size: 14px; } .g-who b { font-weight: 700; } .g-who small { color: #5e5e5e; font-size: 12px; margin-left: 4px; }
+.g-to { color: #5e5e5e; font-size: 12px; margin: 2px 0 14px; }
+.g-text { font-size: 14px; line-height: 20px; max-width: 70ch; }
+.variant.lab .rwrap { width: var(--card-w); margin: 0 0 0 56px; }
+.variant.lab .me { width: 40px; height: 40px; left: -56px; top: 6px; }
+.variant.lab .r-to { height: 52px; box-sizing: border-box; padding-block: 0; }
+.variant.lab .box { min-height: var(--body-h); }
+.variant.lab .layer { font: var(--draft-font)/var(--draft-lh) Arial, Helvetica, sans-serif; padding: 10px 14px; }
+.stage-bar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 14px; }
+.panel { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - 24px); overflow: auto; background: var(--ink-2); border: 2px solid var(--ink-3); border-radius: 18px; padding: 16px; display: grid; gap: 14px; }
+.panel h2 { font: 600 20px/1 var(--display); margin: 0; }
+.panel fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; }
+.panel legend { font: 700 12px/1 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--acid); margin-bottom: 8px; padding: 0; }
+.knob { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; font: 500 13px/1.2 var(--ui); color: var(--paper); }
+.knob output { font-variant-numeric: tabular-nums; color: var(--dim); }
+.knob input { grid-column: 1 / -1; width: 100%; accent-color: var(--mag); }
+.knob input:focus-visible, .panel select:focus-visible, .kind input:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.sel { display: grid; gap: 4px; font: 500 13px/1.2 var(--ui); color: var(--paper); }
+.panel select { font: 500 14px/1 var(--ui); padding: 8px 10px; border-radius: 10px; border: 2px solid var(--ink-3); background: #fff; color: var(--paper); }
+.sels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+#kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.kind { display: flex; align-items: center; gap: 6px; font: 500 12px/1.2 var(--ui); color: var(--paper); cursor: pointer; }
+.kthumb canvas { width: 28px; height: 28px; display: block; background: #f7e6c4; border-radius: 8px; }
+#json { margin: 0; font: 12px/1.4 ui-monospace, Menlo, monospace; background: var(--ink); border: 1.5px solid var(--ink-3); border-radius: 10px; padding: 10px; max-height: 200px; overflow: auto; color: var(--paper); user-select: all; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+#caNow { font: 500 12px/1.3 var(--ui); color: var(--dim); letter-spacing: 0; text-transform: none; }
+</style>
+
+<div class="wrap lab-wrap">
+  <header class="top">
+    <div class="eyebrow">Instant Reply / beach / round 20: tuning lab</div>
+    <h1>Shore <span>tuning</span></h1>
+    <p class="lede">One reply box at real Gmail size (the card measured on a live box was 621 by 289, with a 52px To line). Move the sliders, hit <b>Play</b> (or press <kbd>R</kbd>), and when it feels right, <b>Copy settings</b> and paste them to me. Settings are remembered in this browser.</p>
+  </header>
+  <div class="lab-grid">
+    <div>
+      <div class="stage-scroll">
+        <div class="stage" id="stage">
+          <div class="g-tools" aria-hidden="true"><i></i><i></i><i></i><i></i><span style="margin-left:auto">1 of 248</span></div>
+          <div class="g-sheet">
+            <h2 class="g-h2">Q3 review, this week? <span>Inbox</span></h2>
+            <div class="g-msg2">
+              <div class="g-av2" aria-hidden="true">P</div>
+              <div>
+                <div class="g-who"><b>Priya Raman</b><small>&lt;priya.raman@example.com&gt;</small></div>
+                <div class="g-to">to me</div>
+                <div class="g-text">Hey, could we find 30 minutes this week to walk through the Q3 numbers before Friday's board prep? Thursday afternoon is best for me.<br><br>Thanks,<br>Priya</div>
+              </div>
+            </div>
+            <section class="variant lab" data-on="1" data-bt="s1" data-view="aerial" id="card">
+              <div class="rwrap">
+                <div class="me" aria-hidden="true">B</div>
+                <div class="reply">
+                  <div class="skin" aria-hidden="true"></div>
+                  <div class="r-to"><span class="arr" aria-hidden="true">&#8617;</span><span>Priya Raman</span></div>
+                  <div class="box" aria-live="polite">
+                    <canvas class="sandfx" aria-hidden="true"></canvas>
+                    <div class="layer a"></div>
+                    <div class="layer b" aria-hidden="true"></div>
+                    <canvas class="fx" aria-hidden="true"></canvas>
+                  </div>
+                  <div class="r-foot">
+                    <span class="sendgrp"><button type="button" class="send">Send</button><button type="button" class="more" aria-label="Schedule send">&#9662;</button></span>
+                    <button type="button" class="go">Refactor</button>
+                    <div class="icons"></div>
+                    <span class="spacer"></span>
+                    <button type="button" class="tog" aria-pressed="true"><i></i>Instant Reply</button>
+                    <button type="button" class="ic trash" aria-label="Discard draft" title="Discard draft"></button>
+                  </div>
+                </div>
+              </div>
+              <div class="stage-bar"><span class="chip pal"></span><span class="chip now">Press Play</span></div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <div class="stage-bar">
+        <button type="button" class="play" id="go2">Play</button>
+        <button type="button" class="allbtn" id="resetText">Reset text</button>
+        <button type="button" class="pausebtn" id="pause" aria-pressed="false">Pause</button><kbd>P</kbd>
+        <span class="seg" id="rate">
+          <button type="button" data-rate="1" aria-pressed="true">1x</button>
+          <button type="button" data-rate="0.25" aria-pressed="false">0.25x</button>
+          <button type="button" data-rate="0.1" aria-pressed="false">0.1x</button>
+        </span>
+      </div>
+    </div>
+    <aside class="panel" aria-label="Parameters">
+      <h2>Parameters</h2>
+      <label class="sel" for="s-style">Saved look<select id="s-style"><option value="">Choose a saved look</option><option value="beach-v1">Beach v1 (picked)</option><option value="defaults">Original defaults</option></select></label>
+      <div class="sels">
+        <label class="sel" for="s-preset">Preset<select id="s-preset"></select></label>
+        <label class="sel" for="s-view">View<select id="s-view"><option value="aerial">Aerial</option><option value="tilt">Tilted</option></select></label>
+        <label class="sel" for="s-palette">Palette<select id="s-palette"><option value="ca">California time</option><option value="s1">Lagoon</option><option value="s3">Hibiscus Reef</option><option value="s2">Tapa Sunset</option><option value="s4">Night Voyage</option></select></label>
+        <label class="sel" for="s-draft">Draft length<select id="s-draft"><option value="short">Short</option><option value="normal">Normal</option><option value="long">Long</option></select></label>
+      </div>
+      <span id="caNow" aria-live="polite"></span>
+      <div id="knobs"></div>
+      <fieldset><legend>Can wash up</legend><div id="kinds"></div></fieldset>
+      <fieldset><legend>Settings</legend>
+        <pre id="json"></pre>
+        <div class="row"><button type="button" class="play" id="copy">Copy settings</button><button type="button" class="allbtn" id="defaults">Reset to defaults</button></div>
+      </fieldset>
+    </aside>
+  </div>
+</div>
+
+<script>
+const OLD = "tell her thursday works, ask if 3pm is ok. i'll bring the q3 numbers. keep it short";
+const NEW = "Hi Priya,\n\nThursday works for me. Would 3pm suit you? I'll bring the Q3 numbers so we can go through them together before Friday.\n\nBest,\nBhuvan";
+
+const ICONS = [
+  ["Formatting options", '<path d="M6.5 15.5 12 4l5.5 11.5M8.6 11.2h6.8"/><path d="M3.5 19.5c1.7-1.4 3.3-1.4 5 0s3.3 1.4 5 0 3.3-1.4 5 0 1.5.9 2 .6" stroke-width="2.2" style="stroke:var(--acc)"/>'],
+  ["Attach files", '<circle class="a" cx="15" cy="4" r="1.8"/><path d="M15 5.8V14a5 5 0 0 1-10 0v-1.5"/><path d="M5 12.5 8.2 15"/>'],
+  ["Insert link", '<path d="M10 14.5a3.5 3.5 0 0 1 0-5l2.5-2.5a3.5 3.5 0 0 1 5 5l-1 1"/><path d="M14 9.5a3.5 3.5 0 0 1 0 5L11.5 17a3.5 3.5 0 0 1-5-5l1-1"/><circle class="a" cx="12" cy="12" r="1.6"/>'],
+  ["Insert emoji", '<circle class="a" cx="12" cy="12" r="5.6"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/><path d="M9.8 13.2a2.6 2.6 0 0 0 4.4 0" stroke-width="1.6"/><path d="M10.2 10.6h.01M13.8 10.6h.01" stroke-width="2.4"/>'],
+  ["Insert photo", '<rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle class="a" cx="16" cy="8.6" r="1.9"/><path d="M8 18c.4-3 .3-5.6-.6-8"/><path d="M7.4 10c-1.4-.8-3 .2-3.2 1M7.4 10c1.2-1.2 3-.8 3.4.2M7.4 10c.2-1.6 1.8-2.4 2.8-2"/><path class="a" d="M3.5 17.5c3-1.8 6-1.8 9 0s5 1.4 8 0V20h-17z" stroke="none"/>'],
+  ["More options", '<circle cx="12" cy="5.5" r="1.6"/><circle class="a" cx="12" cy="12" r="2.2"/><circle cx="12" cy="18.6" r="1.2"/>'],
+];
+const PAIL = '<svg viewBox="0 0 24 24"><path d="M6 5.5c0-2.4 12-2.4 12 0"/><path class="a" d="M4.5 8h15l-1.8 12.2a1.5 1.5 0 0 1-1.5 1.3H7.8a1.5 1.5 0 0 1-1.5-1.3z"/><path d="M4 8h16"/><path d="M9.5 12v5.5M14.5 12v5.5" stroke-width="1.6"/></svg>';
+const HIBISCUS = (fill, center) => `<svg viewBox="0 0 100 100" aria-hidden="true"><g fill="${fill}" stroke="#c02a55" stroke-width="2">${[0, 72, 144, 216, 288].map(r => `<ellipse cx="50" cy="26" rx="19" ry="25" transform="rotate(${r} 50 50)"/>`).join("")}</g><circle cx="50" cy="50" r="9" fill="${center}"/><path d="M50 50 L66 34" stroke="${center}" stroke-width="3"/><circle cx="67" cy="33" r="3.5" fill="#ffd23f"/></svg>`;
+
+const THEME_NAME = { s1: "Lagoon", s2: "Tapa Sunset", s3: "Hibiscus Reef", s4: "Night Voyage" };
+const LOOT_NAME = { starfish: "Coral starfish", starfish2: "Sunny starfish", starfish3: "Pink starfish", scallop: "Scallop shell", sanddollar: "Sand dollar", cowrie: "Cowrie", hibiscus: "Hibiscus", crab: "Crab (runs off)", turtle: "Baby turtle (heads to sea)", hermit: "Hermit crab (shuffles)", octopus: "Octopus", jellyfish: "Jellyfish", seahorse: "Seahorse", bottle: "Message bottle", castle: "Sandcastle (rises)", glowstar: "Glowing starfish" };
+
+// fx, fy: where it sits in the box (fractions), kept to the empty spots of the new draft. The crab is drawn last so it runs over the rest.
+// California time decides the palette, read when Refactor is pressed and held for the whole wave.
+const CA_SLOTS = [[5, 11, "s1", "Morning"], [11, 17, "s3", "Afternoon"], [17, 20, "s2", "Evening"]];
+function caHour() { return +new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", hour: "numeric", hourCycle: "h23" }).format(new Date()) % 24; }
+function caSlot() { const h = caHour(), s = CA_SLOTS.find(([a, b]) => h >= a && h < b); return s ? { bt: s[2], part: s[3] } : { bt: "s4", part: "Night" }; }
+function caClock() { return new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", hour: "numeric", minute: "2-digit" }).format(new Date()); }
+
+// Beach finds: each wave picks 4 to 6 of these and drops them on empty sand.
+const POOL = ["starfish", "starfish2", "starfish3", "bottle", "crab", "turtle", "hermit", "octopus", "jellyfish"];
+const SPAN = { bottle: 1.5, crab: 1.55, turtle: 1.45, hermit: 1.3, octopus: 1.2, jellyfish: 1.3, seahorse: 1.2 };
+const MOVERS = new Set(["crab", "turtle", "hermit"]);
+function textRects(layer, box) {
+  const br = box.getBoundingClientRect(), out = [], walker = document.createTreeWalker(layer, NodeFilter.SHOW_TEXT), range = document.createRange();
+  while (walker.nextNode()) {
+    range.selectNodeContents(walker.currentNode);
+    for (const r of range.getClientRects()) if (r.width > 1) out.push({ x0: r.left - br.left - K.clear, y0: r.top - br.top - K.clear * .6, x1: r.right - br.left + K.clear, y1: r.bottom - br.top + K.clear * .6 });
+  }
+  return out;
+}
+function scatterLoot(W, H, rects) {
+  const lo = Math.min(K.countMin, K.countMax), hi = Math.max(K.countMin, K.countMax);
+  const kinds = POOL.filter(k => K.kinds[k]).sort(() => Math.random() - .5).slice(0, lo + ((Math.random() * (hi - lo + 1)) | 0)), placed = [];
+  for (const kind of kinds) {
+    const r = rand(Math.min(K.sizeMin, K.sizeMax), Math.max(K.sizeMin, K.sizeMax)), rad = r * (SPAN[kind] || 1.2);
+    for (let tries = 0; tries < 300; tries++) {
+      const x = rand(rad + 4, W - rad - 4), y = rand(rad + 4, H - rad - 4);
+      if (rects.some(q => x + rad > q.x0 && x - rad < q.x1 && y + rad > q.y0 && y - rad < q.y1)) continue;
+      if (placed.some(p => Math.hypot(p.x - x, p.y - y) < p.rad + rad + K.gap)) continue;
+      placed.push({ kind, x, y, r, rad, rot: MOVERS.has(kind) || kind === "octopus" || kind === "jellyfish" ? rand(-.15, .15) : rand(-.8, .8), dir: Math.random() < .5 ? -1 : 1 });
+      break;
+    }
+  }
+  // movers are drawn last so they walk over the rest
+  return placed.sort((a, b) => MOVERS.has(a.kind) - MOVERS.has(b.kind));
+}
+const PRESETS = [
+  { v: "ltr", name: "Left to right", pattern: "slant", dir: "ltr", slope: .8, bt: "s1", view: "aerial",
+    blurb: "Lands on the left and sweeps across to the right. It pulls back in the same order, so the left side of the draft surfaces first." },
+  { v: "rtl", name: "Right to left", pattern: "slant", dir: "rtl", slope: .8, bt: "s2", view: "aerial",
+    blurb: "The mirror: lands on the right, sweeps left, and the right side of the draft surfaces first." },
+  { v: "nudge", name: "Right nudges ahead", pattern: "slant", dir: "rtl", slope: .3, bt: "s3", view: "aerial",
+    blurb: "Almost level, but the top right gets there a beat before the top left. The subtle one, from round 18's Slanted Set." },
+  { v: "centre", name: "Centre first", pattern: "surge", c: .5, w: .26, bt: "s4", view: "aerial",
+    blurb: "The middle pushes in first and furthest, the sides land late and drain first, and the middle lets go last." },
+  { v: "lcentre", name: "Left half centre", pattern: "surge", c: .27, w: .2, bt: "s1", view: "aerial",
+    blurb: "Same surge, but it hits the middle of the left half first and spreads out both ways from there." },
+  { v: "rcentre", name: "Right half centre", pattern: "surge", c: .73, w: .2, bt: "s2", view: "aerial",
+    blurb: "Hits the middle of the right half first, then spreads out both ways." },
+];
+const ROTATION = { v: "rot", tag: "Live", name: "Rotation", random: true, bt: "s1", view: "aerial",
+  blurb: "What ships: each Refactor rolls one of the six presets below, never repeating the last one. The chip shows which one you just got." };
+const VARIANTS = [ROTATION, ...PRESETS.map((p, i) => ({ ...p, tag: "P" + (i + 1) }))];
+function pickPreset(card) {
+  const pool = PRESETS.filter(p => p.v !== card._last);
+  const p = pool[(Math.random() * pool.length) | 0];
+  card._last = p.v;
+  return p;
+}
+
+const SEA = {
+  s1: { far: "#bff3f1", mid: "#2cc1d3", deep: "#0a6fa0", abyss: "#07496e", foam: "#ffffff", sand: "#f7e6c4", wet: "#d6b88a", grain: ["#e6cc9a", "#fff7e4", "#d9bd8c"], glint: "#ffffff", glow: null },
+  s2: { far: "#ffd3a1", mid: "#f08a6f", deep: "#b44d4a", abyss: "#6e2a33", foam: "#fff4e0", sand: "#f6dab2", wet: "#cc9c6c", grain: ["#e7c290", "#fff1dc", "#d7ab7a"], glint: "#ffe08a", glow: null },
+  s3: { far: "#c8fbe9", mid: "#1fc6c9", deep: "#0a8a8e", abyss: "#065a63", foam: "#ffffff", sand: "#faebd2", wet: "#dcc39a", grain: ["#ecd3a8", "#fff8ea", "#f3c9c9"], glint: "#ffffff", glow: null },
+  s4: { far: "#3b6fae", mid: "#16427e", deep: "#0b2752", abyss: "#050f24", foam: "#c9fdff", sand: "#dedde8", wet: "#a8abc4", grain: ["#c9c8d9", "#f4f3fb", "#b7b8cf"], glint: "#ffd98a", glow: "#6ff3ff" },
+};
+
+// Every tunable number lives in K. The panel writes it, the engine reads it.
+const KNOBS = [
+  ["Wave", [
+    ["wave", "Wave length", "ms", 1200, 5000, 100, 2800],
+    ["uneven", "Unevenness", "", 0, 2, .05, .6],
+    ["runUp", "Run up share of the wave", "", .2, .6, .01, .36],
+    ["hang", "Hang at furthest reach", "", 0, .12, .01, .05],
+    ["scallop", "Scallop depth", "px", 0, 20, 1, 8],
+    ["lobe", "Scallop width", "px", 20, 100, 1, 44],
+    ["foam", "Foam thickness", "x", .4, 2.5, .1, 1],
+  ]],
+  ["Sand", [
+    ["sandIn", "Sand fade in", "ms", 0, 1000, 20, 240],
+    ["dry", "Wet sand dry time", "ms", 300, 4000, 50, 1900],
+    ["hold", "Hold after the wave", "ms", 0, 4000, 100, 1600],
+    ["fade", "Beach fade out", "ms", 100, 2000, 50, 700],
+  ]],
+  ["Finds", [
+    ["countMin", "Fewest finds", "", 0, 8, 1, 1],
+    ["countMax", "Most finds", "", 0, 8, 1, 3],
+    ["sizeMin", "Smallest size", "px", 6, 20, .5, 9],
+    ["sizeMax", "Largest size", "px", 6, 24, .5, 12],
+    ["clear", "Space from text", "px", 0, 24, 1, 5],
+    ["gap", "Space between finds", "px", 0, 40, 1, 6],
+    ["critter", "Critter speed", "x", .3, 2.5, .1, 1],
+  ]],
+  ["Gmail", [
+    ["cardW", "Reply card width", "px", 420, 960, 1, 621],
+    ["bodyH", "Body min height", "px", 100, 400, 1, 185],
+    ["fontPx", "Draft font size", "px", 11, 18, .5, 13],
+    ["lineH", "Draft line height", "", 1, 1.8, .05, 1.2],
+    ["wait", "Model wait", "ms", 0, 4000, 100, 600],
+  ]],
+];
+const DEFAULTS = { preset: "random", view: "aerial", palette: "ca", draft: "normal", kinds: Object.fromEntries(POOL.map(k => [k, true])) };
+for (const [, rows] of KNOBS) for (const [key, , , , , , def] of rows) DEFAULTS[key] = def;
+// Saved looks. "Beach v1" is the set picked on 2026-09-29.
+const STYLE_PRESETS = {
+  "beach-v1": { name: "Beach v1 (picked)", values: { preset: "random", view: "aerial", palette: "ca", draft: "normal", kinds: { starfish: true, starfish2: true, starfish3: true, bottle: true, crab: true, turtle: true, hermit: true, octopus: true, jellyfish: true }, wave: 2800, uneven: .6, runUp: .36, hang: .05, scallop: 8, lobe: 44, foam: 1.5, sandIn: 140, dry: 2200, hold: 1600, fade: 700, countMin: 2, countMax: 4, sizeMin: 10, sizeMax: 17, clear: 10, gap: 23, critter: 1, cardW: 881, bodyH: 187, fontPx: 13.5, lineH: 1.2, wait: 600 } },
+  "defaults": { name: "Original defaults", values: null },
+};
+const STORE = "ir-shore-lab-v1";
+let K = structuredClone(DEFAULTS);
+try { const saved = JSON.parse(localStorage.getItem(STORE) || "null"); if (saved) K = { ...K, ...saved, kinds: { ...K.kinds, ...(saved.kinds || {}) } }; } catch (e) {}
+const state = { get lat() { return K.wait; }, get waveSpeed() { return K.wave; }, get theme() { return K.palette; }, get uneven() { return K.uneven; }, view: "own" };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const clock = { t: 0, rate: 1, paused: false, last: performance.now() };
+(function tick(now) {
+  if (!clock.paused) clock.t += (now - clock.last) * clock.rate;
+  clock.last = now;
+  requestAnimationFrame(tick);
+})(performance.now());
+const sleep = ms => new Promise(r => { const end = clock.t + ms; (function f() { clock.t >= end ? r() : requestAnimationFrame(f); })(); });
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const easeSine = t => -(Math.cos(Math.PI * t) - 1) / 2;
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+const easeBack = t => { const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+
+function fitCanvas(c) {
+  const r = c.getBoundingClientRect(), d = devicePixelRatio || 1, ctx = c.getContext("2d");
+  if (c.width !== Math.round(r.width * d) || c.height !== Math.round(r.height * d)) { c.width = Math.round(r.width * d); c.height = Math.round(r.height * d); }
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+  return { ctx, W: r.width, H: r.height };
+}
+
+// ===== Treasures, drawn centred on 0,0 =====
+function smoothPoly(ctx, pts) {
+  const n = pts.length, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  let m = mid(pts[n - 1], pts[0]);
+  ctx.beginPath(); ctx.moveTo(m[0], m[1]);
+  for (let i = 0; i < n; i++) { const p = pts[i], q = mid(p, pts[(i + 1) % n]); ctx.quadraticCurveTo(p[0], p[1], q[0], q[1]); }
+  ctx.closePath();
+}
+function starfish(ctx, r, fill, line, dot, glow) {
+  const pts = [];
+  for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .42 : r; pts.push([Math.cos(a) * rr, Math.sin(a) * rr]); }
+  if (glow) { ctx.shadowColor = glow; ctx.shadowBlur = 14; }
+  smoothPoly(ctx, pts); ctx.fillStyle = fill; ctx.fill();
+  ctx.shadowBlur = 0; ctx.lineWidth = 1.4; ctx.strokeStyle = line; ctx.stroke();
+  ctx.fillStyle = dot;
+  for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; for (let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.arc(Math.cos(a) * r * k * .22, Math.sin(a) * r * k * .22, 1.1, 0, 6.3); ctx.fill(); } }
+}
+const TREASURE = {
+  starfish: (ctx, r) => starfish(ctx, r, "#ff7a59", "#cf4f33", "#ffd2bd"),
+  starfish2: (ctx, r) => starfish(ctx, r, "#ffab40", "#d9822b", "#fff0c9"),
+  starfish3: (ctx, r) => starfish(ctx, r, "#ff6f9a", "#d24a74", "#ffd6e3"),
+  glowstar: (ctx, r) => starfish(ctx, r, "#ffd98a", "#e0a93f", "#fff6d8", "#ffcf5a"),
+  scallop(ctx, r) {
+    const hy = r * .62, R = r * 1.3;
+    ctx.beginPath(); ctx.moveTo(0, hy);
+    for (let a = Math.PI * 1.2; a <= Math.PI * 1.8001; a += .02) { const rr = R + 1.6 * Math.abs(Math.sin(a * 22)); ctx.lineTo(Math.cos(a) * rr, hy + Math.sin(a) * rr); }
+    ctx.closePath(); ctx.fillStyle = "#ffd9c7"; ctx.fill(); ctx.strokeStyle = "#e0907a"; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.strokeStyle = "#eaa591"; ctx.lineWidth = 1;
+    for (let k = 0; k <= 8; k++) { const a = Math.PI * (1.22 + k * .07); ctx.beginPath(); ctx.moveTo(0, hy); ctx.lineTo(Math.cos(a) * R * .95, hy + Math.sin(a) * R * .95); ctx.stroke(); }
+    ctx.fillStyle = "#f4b9a4"; ctx.beginPath(); ctx.moveTo(-r * .38, hy + 1); ctx.lineTo(r * .38, hy + 1); ctx.lineTo(r * .2, hy - r * .22); ctx.lineTo(-r * .2, hy - r * .22); ctx.closePath(); ctx.fill();
+  },
+  sanddollar(ctx, r) {
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, 6.3); ctx.fillStyle = "#f1e5d0"; ctx.fill(); ctx.strokeStyle = "#cdb897"; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.strokeStyle = "#bba27c"; ctx.lineWidth = 1.1;
+    for (let i = 0; i < 5; i++) { ctx.save(); ctx.rotate(i * 2 * Math.PI / 5); ctx.beginPath(); ctx.ellipse(0, -r * .42, r * .13, r * .34, 0, 0, 6.3); ctx.stroke(); ctx.restore(); }
+    ctx.fillStyle = "#bba27c"; ctx.beginPath(); ctx.arc(0, 0, 1.5, 0, 6.3); ctx.fill();
+  },
+  cowrie(ctx, r) {
+    const g = ctx.createRadialGradient(-r * .3, -r * .3, 1, 0, 0, r * 1.1); g.addColorStop(0, "#fff6ea"); g.addColorStop(1, "#e9b98a");
+    ctx.beginPath(); ctx.ellipse(0, 0, r, r * .66, 0, 0, 6.3); ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = "#c98f5c"; ctx.lineWidth = 1.3; ctx.stroke();
+    ctx.fillStyle = "#a86b3f"; for (let k = 0; k < 7; k++) { ctx.beginPath(); ctx.arc(Math.sin(k * 2.3) * r * .6, Math.cos(k * 1.7) * r * .4, .9, 0, 6.3); ctx.fill(); }
+    ctx.strokeStyle = "#8a5530"; ctx.lineWidth = 1.2; ctx.beginPath(); for (let x = -r * .7; x <= r * .7; x += 2) ctx.lineTo(x, Math.sin(x * 1.3) * 1.1); ctx.stroke();
+  },
+  hibiscus(ctx, r) {
+    ctx.fillStyle = "#ff4f81"; ctx.strokeStyle = "#c02a55"; ctx.lineWidth = 1.2;
+    for (let i = 0; i < 5; i++) { ctx.save(); ctx.rotate(i * 2 * Math.PI / 5); ctx.beginPath(); ctx.ellipse(0, -r * .5, r * .38, r * .52, 0, 0, 6.3); ctx.fill(); ctx.stroke(); ctx.restore(); }
+    ctx.fillStyle = "#fff3c4"; ctx.beginPath(); ctx.arc(0, 0, r * .2, 0, 6.3); ctx.fill();
+    ctx.strokeStyle = "#fff3c4"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(r * .45, -r * .45); ctx.stroke();
+    ctx.fillStyle = "#ffd23f"; ctx.beginPath(); ctx.arc(r * .48, -r * .48, 2.2, 0, 6.3); ctx.fill();
+  },
+  bottle(ctx, r) {
+    const w = r * 2.3, h = r * .95;
+    ctx.fillStyle = "rgba(120,210,200,.75)"; ctx.strokeStyle = "#3a9c93"; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w * .72, h, h * .45); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-w / 2 + w * .7, -h * .2, w * .22, h * .4, 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#a8743f"; ctx.fillRect(-w / 2 + w * .9, -h * .22, w * .1, h * .44);
+    ctx.fillStyle = "#fff4dc"; ctx.strokeStyle = "#d6b27c"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.roundRect(-w * .36, -h * .22, w * .4, h * .44, 3); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = "#c98f5c"; ctx.beginPath(); ctx.moveTo(-w * .2, -h * .22); ctx.lineTo(-w * .2, h * .22); ctx.stroke();
+    ctx.strokeStyle = "rgba(255,255,255,.85)"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-w * .4, -h * .3); ctx.lineTo(w * .05, -h * .3); ctx.stroke();
+  },
+  castle(ctx, r, p) {
+    // anchored at its base; p is how far it has risen out of the sand
+    const base = 0, lift = (1 - p) * r * 2.6;
+    ctx.save(); ctx.beginPath(); ctx.rect(-r * 3, -r * 4, r * 6, r * 4); ctx.clip(); ctx.translate(0, lift);
+    const fill = "#e4c28b", shade = "#c99f63", line = "#a67a41";
+    const tower = (x, w, h) => {
+      ctx.fillStyle = fill; ctx.fillRect(x - w / 2, base - h, w, h);
+      ctx.fillStyle = shade; ctx.fillRect(x + w * .2, base - h, w * .3, h);
+      ctx.fillStyle = fill; for (let k = -1; k <= 1; k++) ctx.fillRect(x + k * w * .36 - w * .12, base - h - w * .22, w * .24, w * .24);
+      ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, base - h, w, h);
+    };
+    ctx.fillStyle = fill; ctx.fillRect(-r * 1.5, base - r * 1.2, r * 3, r * 1.2); ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.strokeRect(-r * 1.5, base - r * 1.2, r * 3, r * 1.2);
+    tower(-r * 1.25, r * .8, r * 1.9); tower(r * 1.25, r * .8, r * 1.9); tower(0, r * 1.05, r * 2.5);
+    ctx.fillStyle = "#7a5530"; ctx.beginPath(); ctx.moveTo(-r * .25, base); ctx.lineTo(-r * .25, base - r * .5); ctx.arc(0, base - r * .5, r * .25, Math.PI, 0); ctx.lineTo(r * .25, base); ctx.fill();
+    ctx.strokeStyle = line; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(0, base - r * 2.75); ctx.lineTo(0, base - r * 3.5); ctx.stroke();
+    ctx.fillStyle = "#ff5f7e"; ctx.beginPath(); ctx.moveTo(0, base - r * 3.5); ctx.lineTo(r * .75, base - r * 3.28 + Math.sin(clock.t / 120) * 1.5); ctx.lineTo(0, base - r * 3.05); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(-r * .6, base - r * .75, 1.6, 0, 6.3); ctx.fill(); ctx.beginPath(); ctx.arc(r * .6, base - r * .75, 1.6, 0, 6.3); ctx.fill();
+    ctx.restore();
+  },
+  turtle(ctx, r, p, moving) {
+    const sw = moving ? Math.sin(clock.t / 90) * .5 : Math.sin(clock.t / 500) * .1;
+    ctx.fillStyle = "#6fbf73"; ctx.strokeStyle = "#3d7d44"; ctx.lineWidth = 1.2;
+    const fl = (x, y, a) => { ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.beginPath(); ctx.ellipse(0, 0, r * .48, r * .2, 0, 0, 6.3); ctx.fill(); ctx.stroke(); ctx.restore(); };
+    fl(-r * .78, -r * .4, -.6 + sw); fl(r * .78, -r * .4, .6 - sw); fl(-r * .6, r * .62, .5 - sw); fl(r * .6, r * .62, -.5 + sw);
+    ctx.beginPath(); ctx.ellipse(0, -r * 1.02, r * .3, r * .34, 0, 0, 6.3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#1b1b1b"; for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(s * r * .13, -r * 1.1, 1.3, 0, 6.3); ctx.fill(); }
+    ctx.fillStyle = "#8a6a3c"; ctx.strokeStyle = "#5e4524"; ctx.beginPath(); ctx.ellipse(0, 0, r * .72, r * .86, 0, 0, 6.3); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = "#c9a36a"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(0, 0, r * .3, r * .36, 0, 0, 6.3); ctx.stroke();
+    for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3 + .5; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * .3, Math.sin(a) * r * .36); ctx.lineTo(Math.cos(a) * r * .7, Math.sin(a) * r * .84); ctx.stroke(); }
+  },
+  hermit(ctx, r, p, moving) {
+    const wig = moving ? Math.sin(clock.t / 45) * 2 : 0;
+    ctx.strokeStyle = "#c2412d"; ctx.lineWidth = 1.5; ctx.lineCap = "round";
+    for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(-r * .45, r * .25 + k * r * .15); ctx.lineTo(-r * 1.1, r * .5 + k * r * .25 + (k % 2 ? wig : -wig)); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(-r * .5, 0); ctx.lineTo(-r * .8, -r * .5); ctx.moveTo(-r * .4, -r * .05); ctx.lineTo(-r * .55, -r * .6); ctx.stroke();
+    ctx.fillStyle = "#1b1b1b"; ctx.beginPath(); ctx.arc(-r * .8, -r * .52, 1.6, 0, 6.3); ctx.fill(); ctx.beginPath(); ctx.arc(-r * .55, -r * .62, 1.6, 0, 6.3); ctx.fill();
+    ctx.fillStyle = "#e8503a"; ctx.beginPath(); ctx.arc(-r * .95, r * .08, r * .24, 0, 6.3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#f2c38b"; ctx.strokeStyle = "#b9814a"; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.moveTo(r * .55, -r * .95); ctx.lineTo(r * .95, -r * .2); ctx.arc(r * .15, 0, r * .78, -.25, Math.PI * 1.55); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = "#c98f5c"; ctx.beginPath();
+    for (let a = 0; a < Math.PI * 4; a += .15) { const rr = r * .62 * (1 - a / (Math.PI * 4.4)); ctx.lineTo(r * .15 + Math.cos(a) * rr, Math.sin(a) * rr); }
+    ctx.stroke();
+  },
+  octopus(ctx, r) {
+    const t = clock.t / 200;
+    ctx.strokeStyle = "#a24fc2"; ctx.lineWidth = r * .18; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (let k = 0; k < 6; k++) {
+      const bx = -r * .5 + k * r * .2; ctx.beginPath(); ctx.moveTo(bx, r * .1);
+      for (let s = 1; s <= 6; s++) ctx.lineTo(bx + (k - 2.5) * s * r * .08 + Math.sin(t + k + s * .8) * r * .12, r * .1 + s * r * .15);
+      ctx.stroke();
+    }
+    ctx.fillStyle = "#c46fe0"; ctx.beginPath(); ctx.ellipse(0, -r * .28, r * .66, r * .62, 0, 0, 6.3); ctx.fill();
+    ctx.fillStyle = "#e3a6f2"; ctx.beginPath(); ctx.ellipse(-r * .22, -r * .55, r * .16, r * .1, -.5, 0, 6.3); ctx.fill();
+    for (const s of [-1, 1]) { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(s * r * .24, -r * .2, r * .17, 0, 6.3); ctx.fill(); ctx.fillStyle = "#1b1b1b"; ctx.beginPath(); ctx.arc(s * r * .24 + 1, -r * .18, r * .08, 0, 6.3); ctx.fill(); }
+  },
+  jellyfish(ctx, r) {
+    const pulse = 1 + Math.sin(clock.t / 260) * .07, t = clock.t / 240;
+    ctx.strokeStyle = "rgba(150,120,230,.75)"; ctx.lineWidth = 1.4; ctx.lineCap = "round";
+    for (let k = 0; k < 5; k++) { const bx = -r * .5 + k * r * .25; ctx.beginPath(); ctx.moveTo(bx, 0); for (let s = 1; s <= 6; s++) ctx.lineTo(bx + Math.sin(t + k + s) * r * .12, s * r * .2); ctx.stroke(); }
+    ctx.fillStyle = "rgba(196,176,255,.72)"; ctx.strokeStyle = "rgba(120,96,210,.9)";
+    ctx.beginPath(); ctx.ellipse(0, 0, r * .85 * pulse, r * .72 / pulse, 0, Math.PI, 0);
+    for (let k = 0; k <= 6; k++) ctx.lineTo(r * .85 * pulse * (1 - k / 3), k % 2 ? r * .14 : 0);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "rgba(255,255,255,.6)"; ctx.beginPath(); ctx.ellipse(-r * .3, -r * .38, r * .18, r * .1, -.5, 0, 6.3); ctx.fill();
+  },
+  seahorse(ctx, r) {
+    ctx.save(); ctx.rotate(Math.sin(clock.t / 400) * .08);
+    ctx.strokeStyle = "#e58f2a"; ctx.lineWidth = r * .26; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(r * .05, r * .35); ctx.quadraticCurveTo(r * .05, r * .95, -r * .3, r * .9); ctx.arc(-r * .3, r * .68, r * .22, Math.PI / 2, Math.PI * 2.1); ctx.stroke();
+    ctx.fillStyle = "#ffb347"; ctx.strokeStyle = "#d9822b"; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(r * .52, -r * .1); ctx.lineTo(r * .8, r * .12); ctx.lineTo(r * .45, r * .3); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(r * .08, 0, r * .42, r * .55, .15, 0, 6.3); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-r * .85, -r * .78, r * .6, r * .18, r * .09); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-r * .05, -r * .66, r * .32, 0, 6.3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#d9822b"; ctx.beginPath(); ctx.moveTo(r * .05, -r * .98); ctx.lineTo(r * .15, -r * 1.15); ctx.lineTo(r * .22, -r * .92); ctx.fill();
+    ctx.strokeStyle = "#e58f2a"; ctx.lineWidth = 1; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(-r * .25, -r * .25 + k * r * .15); ctx.lineTo(r * .3, -r * .2 + k * r * .15); ctx.stroke(); }
+    ctx.fillStyle = "#1b1b1b"; ctx.beginPath(); ctx.arc(-r * .1, -r * .7, 1.5, 0, 6.3); ctx.fill();
+    ctx.restore();
+  },
+  crab(ctx, r, p, moving) {
+    const wig = moving ? Math.sin(clock.t / 40) * 3 : Math.sin(clock.t / 300) * .8;
+    ctx.strokeStyle = "#b8321f"; ctx.lineWidth = 1.6; ctx.lineCap = "round";
+    for (const s of [-1, 1]) for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(s * r * .6, r * (.05 + k * .2)); ctx.lineTo(s * r * 1.25, r * (.2 + k * .28) + (k % 2 ? wig : -wig)); ctx.stroke(); }
+    ctx.fillStyle = "#e8503a";
+    for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(s * r * .5, -r * .2); ctx.lineTo(s * r * 1.05, -r * .75); ctx.stroke(); ctx.beginPath(); ctx.arc(s * r * 1.1, -r * .85, r * .34, 0, 6.3); ctx.fill(); ctx.stroke(); }
+    ctx.beginPath(); ctx.ellipse(0, 0, r, r * .66, 0, 0, 6.3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#fff"; for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(s * r * .3, -r * .62, r * .2, 0, 6.3); ctx.fill(); }
+    ctx.fillStyle = "#1b1b1b"; for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(s * r * .3 + 1, -r * .62, r * .09, 0, 6.3); ctx.fill(); }
+  },
+};
+
+// ===== Shoreline engine =====
+// Water enters from the top edge of the box (the sea is the thread above) and runs DOWN over the sand.
+// maxReach[x] is how far the water has ever got in each column: old text survives only below it.
+// The new text shows only between the current water edge and maxReach, i.e. sand the water has uncovered again.
+
+// Uneven shoreline: every column of water gets its own arrival delay, reach and retreat delay,
+// so some stretches race ahead while others lag, on the way in and on the way back.
+const n3 = (u, s, f) => .5 + .5 * (Math.sin(u * f[0] + s[0]) * .55 + Math.sin(u * f[1] + s[1]) * .3 + Math.sin(u * f[2] + s[2]) * .15);
+const bell = (u, c, w) => Math.exp(-Math.pow((u - c) / w, 2));
+const PATTERNS = {
+  // shape from the preset, plus a little noise scaled by unevenness
+  slant: (u, s, P, un) => { const d = P.dir === "ltr" ? u : 1 - u; return {
+    up: clamp(.9 * P.slope * d + .25 * un * n3(u, s.a, [9, 17, 29])),
+    down: clamp(.8 * P.slope * (1 - d) + .25 * un * n3(u, s.b, [9, 17, 29])),
+    reach: clamp(.7 * un * n3(u, s.c, [6, 13, 27])) }; },
+  surge: (u, s, P, un) => { const b = bell(u, P.c, P.w); return {
+    up: clamp((1 - b) * .8 + .25 * un * n3(u, s.a, [9, 17, 31])),
+    down: clamp((1 - b) * .7 + .25 * un * n3(u, s.b, [9, 17, 31])),
+    reach: clamp(b * .8 + .25 * un * n3(u, s.c, [7, 15, 29])) }; },
+};
+function columnPlan(P, W, H, xs) {
+  const ph = () => [rand(0, 6.3), rand(0, 6.3), rand(0, 6.3)];
+  const s = { a: ph(), b: ph(), c: ph() }, un = state.uneven;
+  return xs.map(x => {
+    const p = PATTERNS[P.pattern](x / W, s, P, un);
+    return { du: .18 * p.up, dd: .16 * p.down, hold: K.hang * n3(x / W, s.c, [3, 7, 13]), R: H * (1.06 + .26 * p.reach) };
+  });
+}
+// One column's water edge over the whole wave: wait, run up, hang for a beat, drain back past the top.
+function colTide(t, c) {
+  const Lup = K.runUp, ta = c.du, tu = ta + Lup, td0 = tu + c.hold, te = Math.max(1 - c.dd, td0 + .08);
+  if (t < ta) return { b: -16, up: true };
+  if (t < tu) return { b: -16 + (c.R + 16) * easeOut((t - ta) / Lup), up: true };
+  if (t < td0) return { b: c.R, up: true };
+  return { b: c.R - (c.R + 18) * easeSine(clamp((t - td0) / (te - td0))), up: false };
+}
+// Small scale swash texture on top of the column edge: rounded tongues, sharp cusps.
+function texture(st, x, b, H, now, view, bMean) {
+  const k = clamp(bMean / H), lam = view === "tilt" ? (22 + 60 * k) * K.lobe / 44 : K.lobe, A = view === "tilt" ? (4 + 8 * k) * K.scallop / 8 : K.scallop;
+  return b + A * Math.pow(Math.abs(Math.sin(x / lam * Math.PI + st.phi + now / 1500)), .55) + 2.5 * Math.sin(x * .031 + now / 520 + st.phi * 2) + 1.5 * Math.sin(x * .067 - now / 300);
+}
+
+function grainCanvas(W, H, pal) {
+  const c = document.createElement("canvas"), d = devicePixelRatio || 1;
+  c.width = Math.round(W * d); c.height = Math.round(H * d);
+  const g = c.getContext("2d"); g.scale(d, d);
+  g.fillStyle = pal.sand; g.fillRect(0, 0, W, H);
+  for (let i = 0; i < W * H / 30; i++) { g.fillStyle = pal.grain[(Math.random() * 3) | 0]; g.globalAlpha = rand(.35, .9); g.fillRect(rand(0, W), rand(0, H), rand(.8, 1.8), rand(.8, 1.8)); }
+  g.globalAlpha = .5;
+  for (let i = 0; i < 14; i++) { g.fillStyle = pal.grain[2]; g.beginPath(); g.ellipse(rand(0, W), rand(0, H), rand(1.5, 3), rand(1, 2), rand(0, 3), 0, 6.3); g.fill(); }
+  g.globalAlpha = 1;
+  return c;
+}
+
+function tracePath(ctx, xs, ys) { for (let i = 0; i < xs.length; i++) ctx.lineTo(xs[i], ys[i]); }
+function traceBack(ctx, xs, ys) { for (let i = xs.length - 1; i >= 0; i--) ctx.lineTo(xs[i], ys[i]); }
+
+function drawSand(ctx, W, H, st, pal, V, now, sandA) {
+  ctx.clearRect(0, 0, W, H);
+  if (sandA <= 0) return;
+  ctx.globalAlpha = sandA;
+  ctx.drawImage(st.grain, 0, 0, W, H);
+  // wet sand and sheen: one pixel per cell in a tiny canvas, scaled up with smoothing,
+  // so neighbouring cells blend instead of overlapping into a visible grid
+  if (st.wet) {
+    const DRY = K.dry, step = st.step, cols = st.xs.length, rows = st.wet[0].length;
+    if (!st.wetC) { st.wetC = document.createElement("canvas"); st.wetC.width = cols; st.wetC.height = rows; st.sheenC = document.createElement("canvas"); st.sheenC.width = cols; st.sheenC.height = rows; }
+    const wc = st.wetC.getContext("2d"), wi = wc.createImageData(cols, rows), sc = st.sheenC.getContext("2d"), si = sc.createImageData(cols, rows);
+    const wn = parseInt(pal.wet.slice(1), 16), wr = wn >> 16, wg = (wn >> 8) & 255, wb = wn & 255;
+    const sn = parseInt((pal.glow || "#ffffff").slice(1), 16), sr = sn >> 16, sg = (sn >> 8) & 255, sb = sn & 255;
+    const sheenOn = st.edgeYs && !st.done;
+    for (let i = 0; i < cols; i++) {
+      const col = st.wet[i], lim = st.mr[i] + 3, down = sheenOn && !st.ups[i], ey = sheenOn ? st.edgeYs[i] : 0;
+      for (let r = 0; r < rows; r++) {
+        const y = r * 4, o = (r * cols + i) * 4;
+        if (y <= lim) {
+          const wt = col[r], a = wt == null ? 1 : 1 - clamp((now - wt) / DRY);
+          wi.data[o] = wr; wi.data[o + 1] = wg; wi.data[o + 2] = wb; wi.data[o + 3] = 255 * .85 * Math.max(0, a);
+        }
+        if (down && y >= ey - 2) {
+          const d = y - ey, a = d < 7 ? .45 : d < 17 ? .22 : d < 31 ? .09 * (1 - (d - 17) / 14) : 0;
+          si.data[o] = sr; si.data[o + 1] = sg; si.data[o + 2] = sb; si.data[o + 3] = 255 * a;
+        }
+      }
+    }
+    wc.putImageData(wi, 0, 0); sc.putImageData(si, 0, 0);
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high"; ctx.globalAlpha = sandA;
+    ctx.drawImage(st.wetC, -step / 2, 0, cols * step, rows * 4);
+    if (sheenOn) ctx.drawImage(st.sheenC, -step / 2, 0, cols * step, rows * 4);
+    ctx.restore();
+  }
+  // treasures
+  for (const tr of st.loot) {
+    if (tr.t0 == null) continue;
+    const e = now - tr.t0, p = clamp(e / 340);
+    let x = tr.x, y = tr.y;
+    let moving = false;
+    if (tr.kind === "crab") { const m = clamp((e - 700 / K.critter) / (1500 / K.critter)); moving = m > 0 && m < 1; x += tr.dir * Math.pow(m, 1.6) * (tr.dir > 0 ? W - tr.x + 50 : tr.x + 50); }
+    if (tr.kind === "turtle") { const m = clamp((e - 600 / K.critter) / (2600 / K.critter)); moving = m > 0 && m < 1; y -= easeSine(m) * (tr.y + 40); }
+    if (tr.kind === "hermit") { const m = clamp((e - 800 / K.critter) / (1300 / K.critter)); moving = m > 0 && m < 1; x += tr.dir * 34 * easeSine(m); }
+    ctx.save(); ctx.globalAlpha = sandA; ctx.translate(x, y);
+    if (tr.kind === "castle") { TREASURE.castle(ctx, tr.r, easeOut(clamp(e / 700))); }
+    else {
+      const s = easeBack(p);
+      ctx.rotate(tr.rot + (tr.kind === "bottle" ? Math.sin(now / 260) * .05 : 0)); ctx.scale(s, s);
+      ctx.fillStyle = "rgba(60,40,20,.14)"; ctx.beginPath(); ctx.ellipse(1.5, tr.r * .75, tr.r * 1.1, tr.r * .35, 0, 0, 6.3); ctx.fill();
+      if (pal.glow && tr.kind === "jellyfish") { ctx.shadowColor = pal.glow; ctx.shadowBlur = 12; }
+      TREASURE[pal.glow && tr.kind.startsWith("starfish") ? "glowstar" : tr.kind](ctx, tr.r, p, moving);
+      ctx.shadowBlur = 0;
+      // a skin of sand slides off as it is unearthed
+      const skin = 1 - clamp(e / 800);
+      if (skin > 0) { ctx.globalAlpha = sandA * skin * .9; ctx.fillStyle = pal.wet; ctx.beginPath(); ctx.ellipse(0, tr.r * .1, tr.r * 1.25, tr.r * (.4 + .6 * skin), 0, 0, 6.3); ctx.fill(); }
+    }
+    ctx.restore();
+  }
+  // grit flicked up by digging treasures
+  for (const g of st.grit) { g.x += g.vx; g.y += g.vy; g.vy += .18; g.life -= .03; if (g.life <= 0) continue; ctx.globalAlpha = sandA * g.life; ctx.fillStyle = g.c; ctx.fillRect(g.x, g.y, g.r, g.r); }
+  st.grit = st.grit.filter(g => g.life > 0);
+  ctx.globalAlpha = 1;
+}
+
+function foamLine(ctx, xs, ys, pal, width, alpha, glow) {
+  ctx.save();
+  if (glow) { ctx.shadowColor = glow; ctx.shadowBlur = 12; }
+  ctx.strokeStyle = hexA(pal.foam, alpha); ctx.lineWidth = width; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath(); ctx.moveTo(xs[0], ys[0]); tracePath(ctx, xs, ys); ctx.stroke();
+  ctx.restore();
+}
+function bubbles(ctx, xs, ys, pal, rMin, rMax, spread, dy = 0) {
+  ctx.fillStyle = pal.foam;
+  for (let i = 0; i < xs.length; i++) {
+    ctx.globalAlpha = rand(.6, 1);
+    ctx.beginPath(); ctx.arc(xs[i] + rand(-3, 3), ys[i] + dy + rand(-spread, spread * .4), rand(rMin, rMax), 0, 6.3); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawWater(ctx, W, H, st, pal, view, now) {
+  const { xs, ups, bs } = st, ys = st.edgeYs, tilt = view === "tilt", glow = pal.glow, n = xs.length;
+  const maxY = Math.max(...ys), minY = Math.min(...ys), bMean = bs.reduce((a, b) => a + b, 0) / n;
+  const upFrac = ups.filter(Boolean).length / n;
+  ctx.save();
+  // the water sheet
+  ctx.beginPath(); ctx.moveTo(0, -4); ctx.lineTo(W, -4); traceBack(ctx, xs, ys); ctx.closePath();
+  const g = ctx.createLinearGradient(0, 0, 0, Math.max(20, maxY));
+  if (tilt) { g.addColorStop(0, hexA(pal.abyss, .97)); g.addColorStop(.45, hexA(pal.deep, .93)); g.addColorStop(.85, hexA(pal.mid, .85)); g.addColorStop(1, hexA(pal.far, .7)); }
+  else { g.addColorStop(0, hexA(pal.deep, .92)); g.addColorStop(.55, hexA(pal.mid, .86)); g.addColorStop(1, hexA(pal.far, .62)); }
+  ctx.fillStyle = g; ctx.fill();
+  ctx.save(); ctx.clip();
+  if (tilt) {
+    // swell lines rolling toward the viewer, compressed near the horizon
+    const top = Math.max(0, bMean - 30);
+    for (let j = 0; j < 6; j++) {
+      const f = ((j + now / 700) % 6) / 6, y = top * Math.pow(f, 1.7);
+      ctx.strokeStyle = hexA(pal.foam, .12 + .4 * f); ctx.lineWidth = .7 + 2.2 * f;
+      ctx.beginPath(); for (let x = 0; x <= W; x += 6) ctx.lineTo(x, y + (1 + 3 * f) * Math.sin(x * (.02 + .03 * (1 - f)) + j * 1.7 + now / 400)); ctx.stroke();
+    }
+    const lim = Math.min(minY - 10, 80), x0 = W * .74;
+    for (let y = 3; y < lim; y += 3.5) {
+      const f = y / 80, w = (5 + 18 * f) * (.5 + .5 * Math.abs(Math.sin(y * .7 + now / 110)));
+      ctx.fillStyle = hexA(pal.glint, .3 + .4 * Math.abs(Math.sin(y + now / 90)));
+      ctx.fillRect(x0 - w / 2 + Math.sin(y * .3 + now / 200) * 4, y, w, 1.2 + f * 1.4);
+    }
+  } else {
+    // aerial: foam streaks trailing the edge, and sunlight caustics
+    for (let j = 1; j <= 3; j++) {
+      ctx.strokeStyle = hexA(pal.foam, .38 - j * .08); ctx.lineWidth = 1.6 - j * .3;
+      ctx.beginPath(); for (let i = 0; i < n; i++) ctx.lineTo(xs[i], ys[i] - j * 15 - 4 * Math.sin(xs[i] * .045 + now / 260 + j)); ctx.stroke();
+    }
+    ctx.strokeStyle = hexA(pal.far, .22); ctx.lineWidth = 1;
+    for (const c of st.caustics) {
+      const cx = c.x + Math.sin(now / 700 + c.p) * 8, cy = c.y + Math.cos(now / 800 + c.p) * 6;
+      if (cy > maxY) continue;
+      ctx.beginPath(); ctx.ellipse(cx, cy, c.r, c.r * .6, c.p, 0, 6.3); ctx.stroke();
+    }
+  }
+  if (glow) for (let i = 0; i < 26; i++) { ctx.fillStyle = hexA(glow, rand(.3, .9)); ctx.beginPath(); ctx.arc(rand(0, W), rand(0, maxY), rand(.6, 1.6), 0, 6.3); ctx.fill(); }
+  // lace left in the thin sheet wherever it is pulling back
+  ctx.strokeStyle = hexA(pal.foam, .8); ctx.lineWidth = 1;
+  for (const c of st.lace) {
+    const i = Math.min(n - 1, Math.round(c.x / st.step));
+    if (ups[i]) continue;
+    const y = ys[i] - c.d;
+    ctx.globalAlpha = 1 - c.d / 46;
+    ctx.beginPath(); ctx.ellipse(c.x, y, c.rx * (tilt ? .6 + .6 * clamp(y / H) : 1), c.ry, c.a, 0, 6.3); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  if (tilt) {
+    // each advancing column has a face: white crest on top, lit water below, breaking into whitewash past halfway
+    const brk = xs.map((_, i) => ups[i] ? clamp((clamp(bs[i] / H) - .5) / .35) : 0);
+    const F = xs.map((_, i) => ups[i] ? (5 + 26 * clamp(bs[i] / H)) * (1 - .55 * brk[i]) : 0);
+    const crest = ys.map((y, i) => y - F[i]);
+    if (upFrac > 0) {
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(xs[0], crest[0]); tracePath(ctx, xs, crest); traceBack(ctx, xs, ys); ctx.closePath(); ctx.clip();
+      const step = st.step;
+      for (let i = 0; i < n; i++) {
+        if (F[i] < 1) continue;
+        const fg = ctx.createLinearGradient(0, crest[i], 0, ys[i]);
+        fg.addColorStop(0, pal.far); fg.addColorStop(.45, pal.mid); fg.addColorStop(1, pal.deep);
+        ctx.fillStyle = fg; ctx.fillRect(xs[i] - step / 2 - 1, crest[i] - 3, step + 2, F[i] + 6);
+      }
+      ctx.restore();
+    }
+    foamLine(ctx, xs, crest, pal, (2.5 + 2 * upFrac) * K.foam, .95, glow);
+    ctx.fillStyle = pal.foam;
+    for (let i = 0; i < n; i++) {
+      const k = clamp(bs[i] / H);
+      ctx.globalAlpha = rand(.6, 1);
+      if (ups[i]) { ctx.beginPath(); ctx.arc(xs[i] + rand(-3, 3), crest[i] + rand(-2, 1), rand(1, 2 + 2 * k), 0, 6.3); ctx.fill(); }
+      for (let m = 1; m <= 3 && brk[i] > 0; m++) { ctx.beginPath(); ctx.arc(xs[i] + rand(-3, 3), crest[i] + F[i] * brk[i] * m / 3 + rand(-3, 1), rand(1.5, 2.5 + 4 * brk[i]), 0, 6.3); ctx.fill(); }
+      if (brk[i] > 0 && Math.random() < .05) st.spray.push({ x: xs[i], y: crest[i], vx: rand(-.8, .8), vy: rand(-2.6, -.8), r: rand(1, 2.4), life: 1 });
+      ctx.beginPath(); ctx.arc(xs[i] + rand(-3, 3), ys[i] + rand(-2, 1), ups[i] ? rand(1.2, 3 + 2 * k) : rand(.8, 2), 0, 6.3); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  } else {
+    foamLine(ctx, xs, ys, pal, (2.2 + 1.8 * upFrac) * K.foam, .9, glow);
+    ctx.fillStyle = pal.foam;
+    for (let i = 0; i < n; i++) {
+      const u = ups[i];
+      ctx.globalAlpha = rand(.6, 1);
+      ctx.beginPath(); ctx.arc(xs[i] + rand(-3, 3), ys[i] + (u ? -2 : 0) + rand(-(u ? 5 : 3), u ? 2 : 1.2), u ? rand(1.3, 3.6) : rand(.8, 2), 0, 6.3); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (upFrac > 0) { ctx.strokeStyle = hexA(pal.abyss, .12 * upFrac); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(xs[0], ys[0] + 4); tracePath(ctx, xs, ys.map(y => y + 4)); ctx.stroke(); }
+  }
+  for (const d of st.spray) { d.x += d.vx; d.y += d.vy; d.vy += .16; d.life -= .04; if (d.life <= 0) continue; ctx.globalAlpha = d.life; ctx.fillStyle = glow || pal.foam; ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 6.3); ctx.fill(); }
+  st.spray = st.spray.filter(d => d.life > 0);
+  ctx.restore();
+}
+
+function unearth(st, tr, now, pal) {
+  tr.t0 = now;
+  for (let i = 0; i < 16; i++) st.grit.push({ x: tr.x + rand(-tr.r, tr.r), y: tr.y + rand(-4, 4), vx: rand(-1.6, 1.6), vy: rand(-2.8, -.8), r: rand(1, 2.2), c: pal.grain[(Math.random() * 3) | 0], life: 1 });
+}
+
+function polyPts(xs, ys) { return xs.map((x, i) => `${x}px ${ys[i]}px`).join(","); }
+
+function sweep(card, html) {
+  const V = card._v, view = card.dataset.view, box = card.querySelector(".box"), a = box.querySelector(".layer.a"), b = box.querySelector(".layer.b");
+  const fx = box.querySelector(".fx"), sandC = box.querySelector(".sandfx");
+  b.innerHTML = html;
+  if (reduced) { a.innerHTML = html; b.innerHTML = ""; return Promise.resolve(); }
+  const pal = SEA[card.dataset.bt];
+  const { W, H } = fitCanvas(fx); fitCanvas(sandC);
+  const step = 6, xs = []; for (let x = 0; x <= W + step; x += step) xs.push(Math.min(x, W));
+  const P = V.random ? pickPreset(card) : V;
+  if (V.random) card.querySelector(".chip.now").textContent = "This wave: " + P.name;
+  const plan = columnPlan(P, W, H, xs), rowsN = Math.ceil(H / 4) + 2;
+  const st = {
+    phi: rand(0, 6), step, xs, mr: xs.map(() => -30), wet: xs.map(() => new Array(rowsN)),
+    grain: grainCanvas(W, H, pal), spray: [], grit: [],
+    lace: Array.from({ length: Math.round(W / 5) }, () => ({ x: rand(0, W), d: rand(3, 44), rx: rand(3, 9), ry: rand(1.5, 4), a: rand(-.4, .4) })),
+    caustics: Array.from({ length: 18 }, () => ({ x: rand(0, W), y: rand(0, H), r: rand(6, 14), p: rand(0, 6) })),
+    loot: scatterLoot(W, H, textRects(b, box)),
+  };
+  const bCtx = sandC.getContext("2d"), fCtx = fx.getContext("2d");
+  box.classList.add("sweeping");
+  b.style.opacity = ""; b.style.clipPath = "polygon(0 0, 0 0, 0 0)";
+  return new Promise(done => {
+    const t0 = clock.t, D = state.waveSpeed, HOLD = K.hold, FADE = K.fade, SIN = Math.max(1, K.sandIn);
+    let drawnAt = -1, textDone = false;
+    function frame() {
+      if (clock.t === drawnAt) return requestAnimationFrame(frame);
+      drawnAt = clock.t;
+      const now = clock.t, el = now - t0, t = Math.min(1, el / D);
+      fitCanvas(fx); fitCanvas(sandC);
+      const sandA = el < SIN ? el / SIN : el > D + HOLD ? 1 - clamp((el - D - HOLD) / FADE) : 1;
+
+      if (t < 1) {
+        const cols = plan.map(c => colTide(t, c));
+        st.bs = cols.map(c => c.b); st.ups = cols.map(c => c.up);
+        const bMean = st.bs.reduce((p, q) => p + q, 0) / xs.length;
+        const raw = xs.map((x, i) => texture(st, x, st.bs[i], H, now, view, bMean));
+        const ys = raw.map((y, i) => (raw[Math.max(0, i - 1)] + 2 * y + raw[Math.min(xs.length - 1, i + 1)]) / 4);
+        st.edgeYs = ys;
+        for (let i = 0; i < xs.length; i++) {
+          st.mr[i] = Math.max(st.mr[i], ys[i]);
+          const col = st.wet[i];
+          for (let r = 0; r < rowsN; r++) { const y = r * 4; if (y < ys[i]) col[r] = null; else if (col[r] === null) col[r] = now; }
+        }
+        const reach = st.mr.slice(), top = ys.map((y, i) => Math.min(y, reach[i]));
+        a.style.clipPath = `polygon(${polyPts(xs, reach)}, ${W}px ${H + 60}px, 0 ${H + 60}px)`;
+        b.style.clipPath = `polygon(${polyPts(xs, top)}, ${polyPts([...xs].reverse(), [...reach].reverse())})`;
+        // treasures surface once the water pulls off them
+        for (const tr of st.loot) {
+          if (tr.t0 != null) continue;
+          const c = Math.min(xs.length - 1, Math.round(tr.x / step));
+          if (!st.ups[c] && st.mr[c] > tr.y - 4 && ys[c] < tr.y - tr.r) unearth(st, tr, now, pal);
+        }
+        fCtx.clearRect(0, 0, W, H);
+        drawWater(fCtx, W, H, st, pal, view, now);
+      } else if (!textDone) {
+        textDone = true; st.done = true;
+        fCtx.clearRect(0, 0, W, H);
+        a.innerHTML = html; a.style.clipPath = ""; b.style.clipPath = ""; b.innerHTML = "";
+        st.loot.forEach(tr => { if (tr.t0 == null) unearth(st, tr, now, pal); });
+        for (const col of st.wet) for (let r = 0; r < rowsN; r++) if (col[r] === null) col[r] = now;
+      }
+      drawSand(bCtx, W, H, st, pal, V, now, sandA);
+      if (el < D + HOLD + FADE) return requestAnimationFrame(frame);
+      bCtx.clearRect(0, 0, W, H);
+      box.classList.remove("sweeping");
+      done();
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+const DRAFTS = {
+  short: "Hi Priya,\n\nThursday at 3pm works. See you then.\n\nBest,\nBhuvan",
+  normal: NEW,
+  long: "Hi Priya,\n\nThursday works for me. Would 3pm suit you? I'll bring the Q3 numbers so we can go through them together before Friday.\n\nI've also pulled the regional breakdown you asked about last week, so we can look at the West numbers side by side with the forecast. If there's anything else you want ready for the board prep, send it over and I'll add it.\n\nIf 3pm doesn't work, I'm free any time after 1pm on Thursday.\n\nBest,\nBhuvan",
+};
+async function refactor(card) {
+  const btn = card.querySelector(".go"), label = "Refactor";
+  if (card.dataset.busy || card.dataset.on !== "1") return;
+  card.dataset.busy = 1; btn.disabled = true; btn.textContent = "Refactoring...";
+  if (K.palette === "ca") { const bt = caSlot().bt; if (bt !== card.dataset.bt) applyTheme(card, bt); }
+  card._v = K.preset === "random" ? { random: true } : PRESETS.find(p => p.v === K.preset);
+  card.dataset.view = K.view;
+  if (!card._v.random) card.querySelector(".chip.now").textContent = "This wave: " + card._v.name;
+  await sleep(K.wait);
+  btn.textContent = "Washing in...";
+  await sweep(card, escapeHtml(DRAFTS[K.draft]));
+  btn.textContent = label; btn.disabled = false; delete card.dataset.busy;
+}
+
+function escapeHtml(s) { return s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+
+function lootThumb(kind) {
+  const c = document.createElement("canvas"), d = devicePixelRatio || 1;
+  c.width = c.height = 46 * d; c.setAttribute("aria-hidden", "true");
+  const x = c.getContext("2d"); x.scale(d, d); x.translate(23, kind === "castle" ? 40 : 23);
+  if (kind === "castle") TREASURE.castle(x, 10, 1);
+  else if (kind === "bottle") { x.rotate(-.3); TREASURE.bottle(x, 11); }
+  else TREASURE[kind](x, kind === "crab" ? 10 : 13, 1, false);
+  return c;
+}
+
+function themeLabel(bt) { return state.theme === "ca" ? `${caSlot().part}: ${THEME_NAME[bt]}` : THEME_NAME[bt]; }
+function applyTheme(node, bt) {
+  node.dataset.bt = bt;
+  node.querySelectorAll(".flower").forEach(f => f.remove());
+  if (bt === "s3") node.querySelector(".reply").insertAdjacentHTML("beforeend", `<div class="flower f1" aria-hidden="true">${HIBISCUS("#ff4f81", "#fff3c4")}</div><div class="flower f2" aria-hidden="true">${HIBISCUS("#ffd23f", "#ff4f81")}</div>`);
+  const chip = node.querySelector(".chip.pal"); if (chip) chip.textContent = themeLabel(bt);
+}
+function paintClock() { const s = caSlot(); document.getElementById("caNow").textContent = `California now: ${caClock()}, ${s.part.toLowerCase()} (${THEME_NAME[s.bt]})`; }
+paintClock(); setInterval(paintClock, 30000);
+// ===== Lab UI =====
+const card = document.getElementById("card");
+card.querySelector(".icons").innerHTML = ICONS.map(([label, d]) => `<button type="button" class="ic" aria-label="${label}" title="${label}"><svg viewBox="0 0 24 24">${d}</svg></button>`).join("");
+card.querySelector(".ic.trash").innerHTML = PAIL;
+const oldText = () => card.querySelector(".layer.a").textContent = OLD;
+oldText();
+
+function applyLayout() {
+  const s = document.getElementById("stage");
+  s.style.setProperty("--card-w", K.cardW + "px");
+  s.style.setProperty("--body-h", K.bodyH + "px");
+  s.style.setProperty("--draft-font", K.fontPx + "px");
+  s.style.setProperty("--draft-lh", K.lineH);
+}
+function applyPalette() { applyTheme(card, K.palette === "ca" ? caSlot().bt : K.palette); }
+function save() { try { localStorage.setItem(STORE, JSON.stringify(K)); } catch (e) {} document.getElementById("json").textContent = JSON.stringify(K, null, 2); }
+
+const panel = document.getElementById("knobs");
+const fmt = (v, step) => step < 1 ? (+v).toFixed(step < .1 ? 2 : 1) : String(v);
+panel.innerHTML = KNOBS.map(([group, rows]) => `<fieldset><legend>${group}</legend>${rows.map(([key, label, unit, min, max, step]) =>
+  `<label class="knob" for="k-${key}"><span>${label}</span><output id="o-${key}"></output><input type="range" id="k-${key}" min="${min}" max="${max}" step="${step}"></label>`).join("")}</fieldset>`).join("");
+function paintKnobs() {
+  for (const [, rows] of KNOBS) for (const [key, , unit, , , step] of rows) {
+    document.getElementById("k-" + key).value = K[key];
+    document.getElementById("o-" + key).textContent = fmt(K[key], step) + (unit ? " " + unit : "");
+  }
+  for (const id of ["preset", "view", "palette", "draft"]) document.getElementById("s-" + id).value = K[id];
+  document.querySelectorAll("#kinds input").forEach(c => c.checked = !!K.kinds[c.value]);
+  applyLayout(); applyPalette(); save();
+}
+for (const [, rows] of KNOBS) for (const [key, , unit, , , step] of rows) {
+  document.getElementById("k-" + key).addEventListener("input", e => {
+    K[key] = +e.target.value;
+    document.getElementById("o-" + key).textContent = fmt(K[key], step) + (unit ? " " + unit : "");
+    applyLayout(); save();
+  });
+}
+document.getElementById("s-preset").innerHTML = `<option value="random">Random rotation</option>` + PRESETS.map(p => `<option value="${p.v}">${p.name}</option>`).join("");
+for (const id of ["preset", "view", "palette", "draft"]) document.getElementById("s-" + id).addEventListener("change", e => { K[id] = e.target.value; if (id === "palette") applyPalette(); save(); });
+document.getElementById("kinds").innerHTML = POOL.map(k => `<label class="kind"><input type="checkbox" value="${k}"><span class="kthumb"></span>${LOOT_NAME[k]}</label>`).join("");
+document.querySelectorAll("#kinds .kind").forEach(l => l.querySelector(".kthumb").append(lootThumb(l.querySelector("input").value)));
+document.querySelectorAll("#kinds input").forEach(c => c.addEventListener("change", () => { K.kinds[c.value] = c.checked; save(); }));
+
+document.getElementById("go2").addEventListener("click", () => { if (!card.dataset.busy) { oldText(); refactor(card); } });
+card.querySelector(".go").addEventListener("click", () => refactor(card));
+card.querySelector(".tog").addEventListener("click", e => { const on = card.dataset.on !== "1"; card.dataset.on = on ? "1" : "0"; e.currentTarget.setAttribute("aria-pressed", on); });
+document.getElementById("resetText").addEventListener("click", () => { if (!card.dataset.busy) oldText(); });
+document.getElementById("defaults").addEventListener("click", () => { K = structuredClone(DEFAULTS); paintKnobs(); });
+document.getElementById("copy").addEventListener("click", async e => {
+  const b = e.currentTarget, text = JSON.stringify(K, null, 2);
+  try { await navigator.clipboard.writeText(text); b.textContent = "Copied"; }
+  catch (err) { const r = document.createRange(); r.selectNodeContents(document.getElementById("json")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selected, press Cmd+C"; }
+  setTimeout(() => b.textContent = "Copy settings", 1800);
+});
+document.getElementById("s-style").addEventListener("change", e => {
+  const p = STYLE_PRESETS[e.target.value]; if (!p) return;
+  K = p.values ? { ...structuredClone(DEFAULTS), ...structuredClone(p.values) } : structuredClone(DEFAULTS);
+  paintKnobs();
+});
+paintKnobs();
+
+const pauseBtn = document.getElementById("pause");
+function setPaused(p) { clock.paused = p; pauseBtn.setAttribute("aria-pressed", p); pauseBtn.textContent = p ? "Resume" : "Pause"; }
+pauseBtn.addEventListener("click", () => setPaused(!clock.paused));
+document.addEventListener("keydown", e => {
+  const typing = e.target.tagName === "SELECT" || (e.target.tagName === "INPUT" && e.target.type !== "range");
+  if (typing || e.metaKey || e.ctrlKey) return;
+  if (e.key === "p" || e.key === "P") setPaused(!clock.paused);
+  if (e.key === "r" || e.key === "R") document.getElementById("go2").click();
+});
+document.querySelectorAll("#rate button").forEach(b => b.addEventListener("click", () => {
+  clock.rate = +b.dataset.rate;
+  document.querySelectorAll("#rate button").forEach(x => x.setAttribute("aria-pressed", x === b));
+}));
+</script>
+
+</body></html>

@@ -1,6 +1,6 @@
 # Instant Reply: status and plan
 
-Last updated 2026-09-29 (beach look built with a FragPunk/Beach switch).
+Last updated 2026-09-29 (beach look built with a FragPunk/Beach switch; branch `beach-style`, not yet checked live or merged).
 
 ## Product decisions (agreed)
 
@@ -21,7 +21,7 @@ Last updated 2026-09-29 (beach look built with a FragPunk/Beach switch).
 - Extension adapters: chrome storage store, OpenRouter provider. Service worker is the composition root and the only reader of the API key.
 - Gmail: on/off switch in each reply box (synced across boxes and tabs through storage), Refactor button next to Send.
 - Refactor flow, verified working in Gmail: reads the box without the signature, clicks Expand all and reads every message (sender, recipients, date, cleaned body), sends to the agent, writes the draft back with undo support, stores the exchange.
-- Popup: OpenRouter key (validated, masked) and model.
+- Popup: OpenRouter key (validated, masked) and model, "Look in Gmail" switch (FragPunk or Beach), and a "Your voice and prompts" button that opens the settings page.
 - Look and feel, first pass (FragPunk), in `content/styles.ts`, `content/fx.ts`, `content/icons.ts`, `content/palette.ts`. Tested live in Gmail and adjusted from screenshots:
   - Switch: dashed outline when off, tilted magenta sticker when on. Refactor: tilted torn acid sticker, "Refactor!" in Permanent Marker (bundled at `public/fonts`, Apache 2.0, exposed through `web_accessible_resources`).
   - Reply card: found as the outermost rounded ancestor of the editor (`td.I5` today) and marked `data-ir-card`; its own background, radius and shadow are cleared and a skin behind it draws the border (edge, acid sheet peeking out on the left, torn right edge with a magenta hard shadow, jagged bottom). The box (`div.aoI`) is wider than the card because it holds the avatar column, so the skin is sized to the card, not the box.
@@ -60,8 +60,9 @@ Last updated 2026-09-29 (beach look built with a FragPunk/Beach switch).
 
 ## Open questions
 
+- Beach look, likely adjustments after the live check: the 12px gap added above the body under the foam line is a guess; Gmail's Send button height may squash the pebble; the avatar flower crown only shows when the avatar sits alone in its container.
 - Icon swaps match English tooltip text only. Gmail's formatting button ("Aa") has no tooltip in the DOM and keeps its own icon.
-- Learning cadence: every 3 changes today; learning calls are costly and should use a good model, so a count threshold with a rate limit is being discussed.
+- Learning cadence: the code learns every 3 changes today, which is too often for a costly model. Proposed, not yet agreed: learn when 10 changes are waiting (5 during the first week), at most twice a day (the batch keeps growing in between), a catch-up run when changes have waited 7 days, tiny edits (whitespace, punctuation, a word or two) not counted, and a separate "learning model" setting so learning can use a stronger model than drafting.
 - Per thread tone notes (`threadToneNotes`) exist in the contract but are not learned yet.
 - What is the job app built with, and where does it run? Decides the transport in step 4.
 - Should the API key be encrypted with a passphrase? Currently stored unencrypted in the extension's local storage, which web pages cannot read.

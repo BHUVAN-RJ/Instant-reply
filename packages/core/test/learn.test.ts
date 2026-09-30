@@ -51,6 +51,36 @@ describe("voice learning", () => {
     expect(store.voice().pending.map((s) => s.kind)).toEqual(["revision-request", "sent-diff"]);
   });
 
+  it("learns a sign-off the user fixed by hand before sending, and uses it in later drafts", async () => {
+    const store = memoryStore();
+    const prompts: LlmMessage[][] = [];
+    const agent = createAgent({
+      store,
+      learnAfter: 1,
+      llm: {
+        complete: async (m) => {
+          prompts.push(m);
+          if (m[0].content.includes("You maintain the notes")) return "## Rules you asked for\n- Sign off with just Bhuvan.";
+          return "Not interested, thanks.\n\nThank you,\nBhuvan Rajanahally Jayakumar";
+        },
+      },
+    });
+    await agent.draft({ thread, boxText: "decline" });
+    await agent.recordSent("t1", "Not interested, thanks.\n\nThank you,\nBhuvan");
+    await flush();
+    await flush();
+
+    const learnPrompt = prompts.find((m) => m[0].content.includes("You maintain the notes"))!;
+    const shown = learnPrompt.map((m) => m.content).join("\n");
+    expect(shown).toContain("Bhuvan Rajanahally Jayakumar");
+    expect(shown).toMatch(/Thank you,\nBhuvan(?! Raj)/);
+    expect(store.voice().notes).toContain("Sign off with just Bhuvan.");
+
+    await agent.draft({ thread, boxText: "decline another" });
+    const lastDraftPrompt = prompts.filter((m) => m[0].content.startsWith("You are Instant Reply")).at(-1)!;
+    expect(lastDraftPrompt[0].content).toContain("Sign off with just Bhuvan.");
+  });
+
   it("does nothing when learning is off", async () => {
     const store = memoryStore();
     const agent = createAgent({ store, llm: { complete: async () => "d" }, learning: false });

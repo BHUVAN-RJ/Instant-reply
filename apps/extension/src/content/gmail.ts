@@ -5,7 +5,9 @@ import { LOOK_KEY, asLook, getLook, type Look } from "../look";
 import { beachSweep } from "./beach/fx";
 import { PALETTES, californiaPalette, type PaletteId } from "./beach/palette";
 import { buildBeachStyles } from "./beach/styles";
-import { readBox, writeBox } from "./editor";
+import { clearComments, commentCount, initComments, syncComments, takeComments } from "./comments";
+import { readBox, readSignature, writeBox } from "./editor";
+import { noteSeen } from "../identity";
 import { stamp, sweep } from "./fx";
 import { tagIcons } from "./icons";
 import { ACTIVE_BOX_CLASS, BUSY_EDITOR_CLASS, REFACTOR_CLASS, SKIN_CLASS, TOGGLE_CLASS, buildStyles } from "./styles";
@@ -14,7 +16,7 @@ import { readMessages } from "./thread";
 
 // Runs inside Gmail:
 // - An "Instant Reply" switch in every reply box turns the agent on or off for that thread (every
-//   thread starts off). Off, it sits next to Send; on, it moves right, just before Discard.
+//   thread starts on). Off, it sits next to Send; on, it moves right, just before Discard.
 // - While a thread is on, its reply boxes are dressed in the chosen look and get a Refactor button next
 //   to Send. Refactor sends the box and the whole thread to the agent and animates the draft into the
 //   box. Nothing is ever sent by the extension.
@@ -25,7 +27,12 @@ import { readMessages } from "./thread";
 // Still to do: compose windows (new emails).
 
 let look: Look = "fragpunk";
-const refactorLabel = () => (look === "beach" ? "Refactor" : "Refactor!");
+/** "Refactor!" (FragPunk) or "Refactor" (Beach), with the number of comments waiting in the box. */
+function refactorLabel(box?: HTMLElement | null): string {
+  const base = look === "beach" ? "Refactor" : "Refactor!";
+  const count = box ? commentCount(box) : 0;
+  return count ? `${base} (${count})` : base;
+}
 
 const styleEl = document.createElement("style");
 
@@ -37,7 +44,7 @@ function applyLook(next: Look): void {
       ? buildBeachStyles({ fredoka: chrome.runtime.getURL("fonts/fredoka-600.woff2"), pacifico: chrome.runtime.getURL("fonts/pacifico.woff2") })
       : buildStyles(chrome.runtime.getURL("fonts/permanent-marker.woff2"));
   document.querySelectorAll(`.${SKIN_CLASS}`).forEach((el) => el.remove());
-  document.querySelectorAll<HTMLButtonElement>(`.${REFACTOR_CLASS}:not(:disabled)`).forEach((b) => (b.textContent = refactorLabel()));
+  document.querySelectorAll<HTMLButtonElement>(`.${REFACTOR_CLASS}:not(:disabled)`).forEach((b) => (b.textContent = refactorLabel(b.closest<HTMLElement>(".ir-active-box"))));
   scheduleSync();
 }
 
@@ -65,7 +72,7 @@ const activeCache = new Map<string, boolean>();
 
 async function isThreadActive(threadId: string): Promise<boolean> {
   if (!activeCache.has(threadId)) {
-    activeCache.set(threadId, (await store.getSession(threadId))?.active ?? false);
+    activeCache.set(threadId, (await store.getSession(threadId))?.active ?? true);
   }
   return activeCache.get(threadId)!;
 }
@@ -76,7 +83,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   for (const [key, change] of Object.entries(changes)) {
     if (!key.startsWith(SESSION_PREFIX)) continue;
     const session = change.newValue as ThreadSession | undefined;
-    activeCache.set(key.slice(SESSION_PREFIX.length), session?.active ?? false);
+    activeCache.set(key.slice(SESSION_PREFIX.length), session?.active ?? true);
   }
   scheduleSync();
 });
@@ -137,8 +144,17 @@ function boxEditor(box: HTMLElement): HTMLElement | null {
   return box.querySelector<HTMLElement>('[contenteditable="true"][role="textbox"]');
 }
 
-async function collectThread(box: HTMLElement, threadId: string): Promise<Thread> {
+/** The account's full name, from the Google Account button ("Google Account: Name\n(email)"). */
+function accountName(): string {
+  const label = document.querySelector('[aria-label^="Google Account:"]')?.getAttribute("aria-label") ?? "";
+  return label.replace(/^Google Account:\s*/, "").split("\n")[0].replace(/\s*\(?[\w.+-]+@[\w.-]+\)?\s*$/, "").trim();
+}
+
+async function collectThread(box: HTMLElement, threadId: string, editor: HTMLElement): Promise<Thread> {
   const email = userEmail();
+  const userName = accountName() || undefined;
+  const userSignature = readSignature(editor) || undefined;
+  void noteSeen({ seenName: userName, seenSignature: userSignature });
   const heading = visibleThreadHeading();
   const messages = heading?.dataset.threadPermId === threadId ? await readMessages(heading, email) : [];
   // Fallback: the quoted history Gmail keeps for the reply.
@@ -148,6 +164,8 @@ async function collectThread(box: HTMLElement, threadId: string): Promise<Thread
     source: "gmail",
     subject: box.querySelector<HTMLInputElement>('input[name="subject"]')?.value ?? "",
     userEmail: email,
+    userName,
+    userSignature,
     messages,
     fallbackText: messages.length || !quoted ? undefined : renderedText(new DOMParser().parseFromString(quoted, "text/html").body),
   };
@@ -155,7 +173,7 @@ async function collectThread(box: HTMLElement, threadId: string): Promise<Thread
 
 function flash(button: HTMLButtonElement, text: string, ms = 2500): void {
   button.textContent = text;
-  setTimeout(() => (button.textContent = refactorLabel()), ms);
+  setTimeout(() => (button.textContent = refactorLabel(button.closest<HTMLElement>(".ir-active-box"))), ms);
 }
 
 async function refactor(box: HTMLElement, button: HTMLButtonElement): Promise<void> {
@@ -173,7 +191,7 @@ async function refactor(box: HTMLElement, button: HTMLButtonElement): Promise<vo
   box.dataset.irPalLock = "";
   paintPalette(box, palette);
   try {
-    const message: Message = { type: "draft", request: { thread: await collectThread(box, threadId), boxText } };
+    const message: Message = { type: "draft", request: { thread: await collectThread(box, threadId, editor), boxText, comments: takeComments(box) } };
     const response: DraftResponse = await chrome.runtime.sendMessage(message);
     editor.classList.remove(BUSY_EDITOR_CLASS);
     if (response.ok) {
@@ -184,7 +202,8 @@ async function refactor(box: HTMLElement, button: HTMLButtonElement): Promise<vo
         await sweep(box, editor, write);
         stamp(box, editor);
       }
-      button.textContent = refactorLabel();
+      clearComments(box);
+      button.textContent = refactorLabel(box);
     } else if (response.error === "no-key") {
       flash(button, "Add your OpenRouter key", 4000);
       await chrome.runtime.sendMessage({ type: "open-settings" } satisfies Message);
@@ -206,7 +225,7 @@ function createRefactorButton(box: HTMLElement): HTMLButtonElement {
   const button = document.createElement("button");
   button.type = "button";
   button.className = REFACTOR_CLASS;
-  button.textContent = refactorLabel();
+  button.textContent = refactorLabel(box);
   button.title = "Send this box to Instant Reply instead of the recipient";
   button.addEventListener("click", (event) => {
     event.preventDefault();
@@ -244,7 +263,7 @@ function createSkin(): HTMLElement {
   skin.innerHTML =
     look === "beach"
       ? '<i class="ir-card"></i><i class="ir-lagoon"></i><i class="ir-foam"></i>'
-      : '<i class="ir-sh"></i><i class="ir-under"></i><i class="ir-ink"></i><i class="ir-paper"></i><b class="ir-bar-sh"></b><b class="ir-bar"></b>';
+      : '<i class="ir-sh"></i><i class="ir-under"></i><i class="ir-ink"></i><i class="ir-paper"></i><b class="ir-bar-acid"></b><b class="ir-bar-sh"></b><b class="ir-bar"></b>';
   return skin;
 }
 
@@ -285,6 +304,7 @@ function dressBox(box: HTMLElement, editor: HTMLElement): void {
   let skin = box.querySelector<HTMLElement>(`:scope > .${SKIN_CLASS}`);
   if (!skin) box.prepend((skin = createSkin()));
   const card = replyCard(box, editor);
+  watchSize(card);
   const b = box.getBoundingClientRect(), c = card.getBoundingClientRect();
   setIfChanged(skin, "left", `${c.left - b.left}px`);
   setIfChanged(skin, "top", `${c.top - b.top}px`);
@@ -300,7 +320,27 @@ function dressBox(box: HTMLElement, editor: HTMLElement): void {
     if (isHead !== child.hasAttribute("data-ir-head")) child.toggleAttribute("data-ir-head", isHead);
   }
   tagIcons(box);
+  syncComments(box);
   markAvatar(card, box.dataset.composeId ?? "");
+  placeCrown(box);
+}
+
+/**
+ * The beach flower crown: its own element in the box, placed from the avatar's real position, since the
+ * avatar's wrappers differ in size and offset (and some clip). Removed in any other look.
+ */
+function placeCrown(box: HTMLElement): void {
+  const avatar = document.querySelector<HTMLElement>(`[data-ir-avatar="${box.dataset.composeId}"]`);
+  let crown = box.querySelector<HTMLElement>(":scope > .ir-crown");
+  if (look !== "beach" || !avatar) return crown?.remove();
+  if (!crown) {
+    crown = Object.assign(document.createElement("i"), { className: "ir-crown" });
+    crown.setAttribute("aria-hidden", "true");
+    box.append(crown);
+  }
+  const a = avatar.getBoundingClientRect(), b = box.getBoundingClientRect();
+  setIfChanged(crown, "left", `${Math.round(a.left - b.left + a.width / 2 - 32)}px`);
+  setIfChanged(crown, "top", `${Math.round(a.top - b.top - 17)}px`);
 }
 
 /**
@@ -373,6 +413,8 @@ async function syncReplyBoxes(): Promise<void> {
     if (!active) {
       existing?.remove();
       box.querySelector(`:scope > .${SKIN_CLASS}`)?.remove();
+      box.querySelector(":scope > .ir-crown")?.remove();
+      clearComments(box);
       unmarkAvatar(box);
       continue;
     }
@@ -395,6 +437,21 @@ function scheduleSync(): void {
   });
 }
 
+// Some size changes (the formatting bar opening, the editor growing, the window resizing) add no nodes,
+// so dressed cards are also watched for resizes.
+const resized = new ResizeObserver(scheduleSync);
+const watched = new WeakSet<Element>();
+function watchSize(el: Element): void {
+  if (watched.has(el)) return;
+  watched.add(el);
+  resized.observe(el);
+}
+
 injectStyles();
+initComments((box) => {
+  const button = box.querySelector<HTMLButtonElement>(`.${REFACTOR_CLASS}`);
+  if (button && !button.disabled && button.textContent !== refactorLabel(box)) button.textContent = refactorLabel(box);
+});
 new MutationObserver(scheduleSync).observe(document.body, { childList: true, subtree: true });
+addEventListener("resize", scheduleSync);
 scheduleSync();

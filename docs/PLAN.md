@@ -1,6 +1,6 @@
 # Instant Reply: status and plan
 
-Last updated 2026-09-29 (beach look built with a FragPunk/Beach switch; branch `beach-style`, not yet checked live or merged).
+Last updated 2026-09-29 (branch `beach-style`: both looks checked live in Gmail and polished, threads start on, name and signature, writing rules, inline comments; not merged into main yet).
 
 ## Product decisions (agreed)
 
@@ -8,7 +8,7 @@ Last updated 2026-09-29 (beach look built with a FragPunk/Beach switch; branch `
 - All data local (`chrome.storage.local`). No backend, no Gmail API, no OAuth. Threads are read from the page.
 - LLM via OpenRouter; default model `z-ai/glm-5.3`, changeable in the popup.
 - The Gmail reply box is the only chat surface. No side panel. The Refactor button sends the box to the agent; the draft is written back into the box. Never sends email.
-- Every thread starts off. The on/off switch lives in the reply box itself, since replying is the only time you turn it on or off: next to Send while off, just before Discard while on. Discard always stays the last button.
+- Every thread starts on (changed 2026-09-29; it used to start off). A thread turned off stays off. The on/off switch lives in the reply box itself, since replying is the only time you turn it on or off: next to Send while off, just before Discard while on. Discard always stays the last button.
 - Flair only dresses the reply card while its thread is on; off means plain Gmail. No text or tags on the box, the look itself signals "on". Everything under it (text, icons, dropdowns, the caret) must stay visible, and colours follow Gmail's theme.
 - The agent always gets the whole thread, the thread's own history, and the whole box (an instruction, or a previous draft with edits and change requests).
 - Voice: no profile up front. Learned from revision requests and from hand edits made before sending. The settings page shows it read only; changes happen by chatting with the agent, which rewrites the notes as a whole (avoids drift).
@@ -17,7 +17,7 @@ Last updated 2026-09-29 (beach look built with a FragPunk/Beach switch; branch `
 ## Done
 
 - Workspace: `packages/core` (pure, tested) and `apps/extension` (Chrome host). Build output at repo root `dist/`.
-- Core: versioned contracts, ports (`Store`, `LlmProvider`, `ContextProvider`, `EventSink`), prompt builder, `createAgent` with per thread history (last 20 turns), context gathering with a 3 second timeout, fire and forget events. 3 tests.
+- Core: versioned contracts, ports (`Store`, `LlmProvider`, `ContextProvider`, `EventSink`), prompt builder, `createAgent` with per thread history (last 20 turns), context gathering with a 3 second timeout, fire and forget events. Tests cover drafting, learning, the writing rules, sign-offs and comments.
 - Extension adapters: chrome storage store, OpenRouter provider. Service worker is the composition root and the only reader of the API key.
 - Gmail: on/off switch in each reply box (synced across boxes and tabs through storage), Refactor button next to Send.
 - Refactor flow, verified working in Gmail: reads the box without the signature, clicks Expand all and reads every message (sender, recipients, date, cleaned body), sends to the agent, writes the draft back with undo support, stores the exchange.
@@ -25,7 +25,7 @@ Last updated 2026-09-29 (beach look built with a FragPunk/Beach switch; branch `
 - Look and feel, first pass (FragPunk), in `content/styles.ts`, `content/fx.ts`, `content/icons.ts`, `content/palette.ts`. Tested live in Gmail and adjusted from screenshots:
   - Switch: dashed outline when off, tilted magenta sticker when on. Refactor: tilted torn acid sticker, "Refactor!" in Permanent Marker (bundled at `public/fonts`, Apache 2.0, exposed through `web_accessible_resources`).
   - Reply card: found as the outermost rounded ancestor of the editor (`td.I5` today) and marked `data-ir-card`; its own background, radius and shadow are cleared and a skin behind it draws the border (edge, acid sheet peeking out on the left, torn right edge with a magenta hard shadow, jagged bottom). The box (`div.aoI`) is wider than the card because it holds the avatar column, so the skin is sized to the card, not the box.
-  - To line: everything in the card above `table.iN` is marked `data-ir-head`; a crooked ink bar is drawn behind it, its backgrounds are made transparent, text turns white and its icons are forced white. An acid rule under it marks where the writing area starts, and the caret is magenta.
+  - To line: everything in the card above `table.iN` is marked `data-ir-head`; a crooked ink bar is drawn behind it, its backgrounds are made transparent, text turns white and its icons are forced white. The caret is magenta. (Later changed: see FragPunk polish below.)
   - Send and its schedule arrow are restyled in place (Gmail's blue fill, borders and focus ring cleared) as one joined ink sticker. Toolbar icons (attach, link, emoji, photo, more, discard) are swapped by tooltip text; only real buttons are tagged, not whole toolbars. Discard is 35% bigger.
   - The user's round avatar left of the card is found by probing the page just left of the card (it can sit outside the box) and cut into a tilted octagon with hard shadows; unmarked when the thread is turned off.
   - Theme: `data-ir-theme` light or dark is read from the card's background before it is cleared; edges and icons switch between ink and near white.
@@ -50,15 +50,22 @@ Last updated 2026-09-29 (beach look built with a FragPunk/Beach switch; branch `
   - Learning can be turned off; what is already learned still applies.
 - Settings page (options page, opened from the popup's "Your voice and prompts" button): the fixed base rules, what it knows about the user, the user's own rules, learning status (waiting, learned so far, last update), Learn now, Forget everything with an in-page confirm. A chat changes the notes or answers questions; the notes are never editable by hand. Per thread views are left out on purpose.
 
+- Base rules (2026-09-29): drafts sound like a real person (plain words, no AI sounding phrases or jargon; the user's learned voice wins where they differ) and never use an em dash or a double hyphen in place of one (single hyphens are fine). Code backs this up on every draft (`stripDashes` in core).
+- Name and signature (2026-09-29): the name comes from Gmail's Google Account button, the signature from a signature block Gmail put in the reply box; both are remembered (`identity` in storage) and can be typed on the settings page ("How you sign"), which wins. The model gets both and picks: first name for casual emails and people the user already writes to, the full signature for first contact and formal or professional emails. `[Your name]` style placeholders are filled (or dropped) in code. When Gmail's own signature is in the box and the draft ends with it, Gmail's formatted copy is kept; when the draft signs with just a name, Gmail's copy is replaced so it is not signed twice.
+- FragPunk polish (2026-09-29, checked live in Gmail): Send and Refactor react to hover and press; the To bar tilts down on the right with an acid slab behind it; Gmail's grey card border is cleared; the border is re-measured when the card resizes; the Send row Gmail pins to the window bottom (`.aDj.ahe`) gets its own border; the formatting bar is restyled; new glyphs for Drive, signature and meeting, a real paper clip and chain link, and the Aa button is now swapped (its tooltip sits on a wrapper). Beach got the same set in its own style, and its flower crown is now its own element placed from the avatar.
+
+- Inline comments (built 2026-09-29; marks and pins seen working live in Beach): selecting text in an active reply box opens a note box under it (`content/comments.ts`); Enter pins the note, Esc closes. The passage is marked with the CSS Highlight API (never written into the email) in blue, never red or wavy since that reads as a mistake, and a numbered pin sits at its end; clicking a pin edits or deletes the note. Refactor shows the count ("Refactor! (2)"), sends the comments with the box (`DraftRequest.comments`, folded into the box text by `withComments` in core, so history and learning treat them as change requests), and clears them once the draft lands. If the commented text is edited away, the pin turns grey with "?" and the comment is not sent.
+
 ## Next
 
 1. **Check learning live.** Confirm the Send hook fires on the real Send button and Cmd+Enter, and that notes read well after a few emails.
-2. **Beach style, live check.** Switch to Beach and check in Gmail: the lagoon To line and foam over the real header, Send and its arrow as pebbles, the switch and Refactor shapes, icon petals, the avatar crown, and the wave over real drafts of different lengths. Merge `beach-style` into main once it looks right.
+2. **Beach style, finish the live check.** Confirm the avatar crown placement and the wave over real drafts of different lengths, then merge `beach-style` into main.
 3. **Compose windows (new emails).** Switch in the compose footer, session keyed by draft id (`input[name="draft"]`), move history to the thread id after sending if possible.
 4. **Job app connection.** Decide transport once the job app's stack is known: local bridge service, `externally_connectable` messages, native messaging, or importing `@instant-reply/core` directly. Then implement a `ContextProvider` (role, application status for recruiter threads) and an `EventSink` (update status on replies).
 5. **Polish.** Keyboard shortcut for Refactor (Cmd+Shift+Enter), optional re-collapse after Expand all, extension icon, error messages surfaced in the UI instead of the console, localized Expand all label.
 
 ## Open questions
+
 
 - Beach look, likely adjustments after the live check: the 12px gap added above the body under the foam line is a guess; Gmail's Send button height may squash the pebble; the avatar flower crown only shows when the avatar sits alone in its container.
 - Icon swaps match English tooltip text only. Gmail's formatting button ("Aa") has no tooltip in the DOM and keeps its own icon.

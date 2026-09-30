@@ -31,6 +31,31 @@ const thread: Thread = {
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 describe("agent", () => {
+  it("sends comments pinned to passages with the box, and learns from them", async () => {
+    const calls: LlmMessage[][] = [];
+    const store = memoryStore();
+    const agent = createAgent({ store, learnAfter: 99, llm: { complete: async (m) => (calls.push(m), "Hi Kenisha, Oct 1 works.") } });
+    await agent.draft({ thread, boxText: "confirm" });
+    await agent.draft({
+      thread,
+      boxText: "Hi Kenisha, Oct 1 works.",
+      comments: [{ quote: "Oct 1 works.", note: "sound more excited" }, { quote: " ", note: "ignored" }],
+    });
+    expect(calls[1].at(-1)!.content).toBe('Hi Kenisha, Oct 1 works.\n\nComments on parts of the text above:\n1. On "Oct 1 works.": sound more excited');
+    expect((await store.getVoice()).pending).toEqual([
+      expect.objectContaining({ kind: "revision-request", instruction: expect.stringContaining("sound more excited") }),
+    ]);
+  });
+
+  it("never hands back an em dash or a name placeholder", async () => {
+    const agent = createAgent({
+      store: memoryStore(),
+      llm: { complete: async () => "Hi \u2014 not interested right now.\n\nThank you,\n[Your name]" },
+    });
+    const { draft } = await agent.draft({ thread: { ...thread, userName: "Bhuvan R J" }, boxText: "decline" });
+    expect(draft).toBe("Hi, not interested right now.\n\nThank you,\nBhuvan");
+  });
+
   it("drafts with thread, context and history, then records the turn", async () => {
     const calls: LlmMessage[][] = [];
     const events: AgentEvent[] = [];

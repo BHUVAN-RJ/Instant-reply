@@ -39,6 +39,9 @@ const GLYPHS: Record<string, string> = {
   link: '<path d="M10 14.5a3.5 3.5 0 0 1 0-5l2.5-2.5a3.5 3.5 0 0 1 5 5l-1 1"/><path d="M14 9.5a3.5 3.5 0 0 1 0 5L11.5 17a3.5 3.5 0 0 1-5-5l1-1"/><circle cx="12" cy="12" r="1.6" fill="{acc}"/>',
   emoji: '<circle cx="12" cy="12" r="5.6" fill="{acc}"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/><path d="M9.8 13.2a2.6 2.6 0 0 0 4.4 0" stroke-width="1.6"/><path d="M10.2 10.6h.01M13.8 10.6h.01" stroke-width="2.4"/>',
   photo: '<rect x="3.5" y="4" width="17" height="16" rx="2.5"/><circle cx="16" cy="8.6" r="1.9" fill="{acc}"/><path d="M8 18c.4-3 .3-5.6-.6-8"/><path d="M7.4 10c-1.4-.8-3 .2-3.2 1M7.4 10c1.2-1.2 3-.8 3.4.2M7.4 10c.2-1.6 1.8-2.4 2.8-2"/><path d="M3.5 17.5c3-1.8 6-1.8 9 0s5 1.4 8 0V20h-17z" fill="{acc}" stroke="none"/>',
+  drive: '<path d="M9 4h6l6 10.5-3 5.5H6l-3-5.5z"/><path d="M9 4l6 10.5M3 14.5h12M18 20l-3-5.5" /><path d="M6 20l3-5.5h9" fill="{acc}" stroke="none" opacity=".9"/>',
+  signature: '<path d="M3.5 15c1.6-5 3.6-9 5-8.2s-2 8 .2 8 3-4.4 4.6-4.4-.2 4 1.8 4 2.6-2 4.4-2"/><path d="M3.5 19.5c3-1.4 6-1.4 9 0s5 1.2 8 0" stroke="{acc}" stroke-width="2.2"/>',
+  meet: '<rect x="3.5" y="5.5" width="17" height="15" rx="2.5"/><path d="M8 3.5v4M16 3.5v4M3.5 10h17"/><circle cx="14.5" cy="15" r="2.2" fill="{acc}"/>',
   more: '<circle cx="12" cy="5.5" r="1.6"/><circle cx="12" cy="12" r="2.2" fill="{acc}"/><circle cx="12" cy="18.6" r="1.2"/>',
   trash: '<path d="M6 5.5c0-2.4 12-2.4 12 0"/><path d="M4.5 8h15l-1.8 12.2a1.5 1.5 0 0 1-1.5 1.3H7.8a1.5 1.5 0 0 1-1.5-1.3z" fill="{acc}"/><path d="M4 8h16"/><path d="M9.5 12v5.5M14.5 12v5.5" stroke-width="1.6"/>',
 };
@@ -62,7 +65,7 @@ ${on} .${REFACTOR_CLASS}::after { background-image: ${uri(leaflet(p, 22, 25, 10,
 ${on}${BOX} .dC .aoO { background-image: ${uri(`<path d="${PEBBLE}" fill="${p.sea2}" fill-opacity=".9" stroke="${p.sea}" stroke-width="1.5" ${NS}/><path d="M20 12C40 8 70 8 92 11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".55" ${NS}/>`, "0 0 118 44", true)} !important; }
 ${on}${BOX} .dC .hG { background-image: ${uri(`<path d="M8 12C18 8 26 12 26 22C26 32 18 36 10 33C3 30 2 15 8 12Z" fill="${p.sea2}" fill-opacity=".75" stroke="${p.sea}" stroke-width="1.5" ${NS}/>`, "0 0 30 44", true)} !important; }
 ${on} .${SKIN_CLASS} .ir-foam { background-image: ${scallop}; }
-[data-ir-avatar-wrap]${on}::after { background-image: ${uri(leaflet(p, 34, 22, 12, -10) + hibiscus(p, 14, 20, 13) + plumeria(p, 56, 16, 10), "0 0 70 40")}; }
+${on}${BOX} .ir-crown { background-image: ${uri(leaflet(p, 34, 22, 12, -10) + hibiscus(p, 14, 20, 13) + plumeria(p, 56, 16, 10), "0 0 70 40")}; }
 [data-ir-avatar]${on} { box-shadow: 0 0 0 3px #fff, 0 0 0 5px ${p.leaf} !important; }
 ${icons}`;
 }
@@ -91,12 +94,13 @@ export function buildBeachStyles(fonts: { fredoka: string; pacifico: string }): 
 }
 .${REFACTOR_CLASS}::after { content: ""; position: absolute; right: -6px; top: 50%; width: 34px; height: 34px; margin-top: -17px; background: center / contain no-repeat; }
 .${REFACTOR_CLASS}:hover:not(:disabled) { transform: translateY(-2px) rotate(-1.5deg); }
+.${REFACTOR_CLASS}:active:not(:disabled) { transform: translateY(1px) scale(.98); transition-duration: .05s; }
 .${REFACTOR_CLASS}:disabled { cursor: progress; opacity: .85; }
 .${REFACTOR_CLASS}:focus-visible { outline: 3px solid var(--b-sea2, #19b3c9); outline-offset: 3px; border-radius: 12px; }
 
 /* The card: round, thin leaf green edge. The To line is lagoon water ending in a scalloped foam line. */
 ${BOX} { position: relative; isolation: isolate; }
-${BOX} [data-ir-card] { border-radius: 0 !important; box-shadow: none !important; background: transparent !important; }
+${BOX} [data-ir-card] { border-radius: 0 !important; box-shadow: none !important; background: transparent !important; border-color: transparent !important; }
 .${SKIN_CLASS} { position: absolute; z-index: -1; pointer-events: none; }
 .${SKIN_CLASS} > i { position: absolute; }
 .${SKIN_CLASS} .ir-card { inset: -2px; border: 2px solid var(--b-leaf); border-radius: 22px; background: var(--ir-paper); }
@@ -114,6 +118,10 @@ ${BOX} .dC .aoO { color: #fff !important; font: 600 15px/1 ${ROUND} !important; 
 ${BOX} .dC .hG { margin-left: 3px !important; }
 ${BOX} .dC .hG * { filter: brightness(0) invert(1); }
 ${BOX} .dC .T-I:focus-visible { outline: 3px solid var(--b-sea2) !important; outline-offset: 2px; }
+/* Send reacts: the hovered pebble bobs up and brightens, a press sinks it */
+${BOX} .dC .T-I { transition: transform .15s, filter .15s; }
+${BOX} .dC .T-I:hover { transform: translateY(-2px) rotate(-1.5deg); filter: brightness(1.08) drop-shadow(0 3px 0 var(--b-sea)); }
+${BOX} .dC .T-I:active { transform: translateY(1px); filter: brightness(.95); transition-duration: .05s; }
 
 /* Toolbar icons: beach glyphs on petal shapes */
 ${BOX} [data-ir-icon] { position: relative; background-image: none !important; }
@@ -123,10 +131,42 @@ ${BOX} [data-ir-icon]::before { content: ""; position: absolute; inset: 2px; bac
 ${BOX} [data-ir-icon]:hover::before { background: var(--b-flower2); }
 ${BOX} [data-ir-icon]::after { content: ""; position: absolute; left: 50%; top: 50%; width: 21px; height: 21px; margin: -10.5px 0 0 -10.5px; background: center / contain no-repeat; pointer-events: none; }
 ${BOX} [data-ir-icon="trash"] { transform: scale(1.3); margin: 0 6px 0 8px; }
+${BOX} [data-ir-icon]::after { transition: transform .15s; }
+${BOX} [data-ir-icon]:hover::after { transform: translateY(-2px) rotate(-8deg) scale(1.1); }
+${BOX} [data-ir-icon]:active::after { transform: scale(.94); transition-duration: .05s; }
+
+/* The formatting bar: a lagoon strip with a leaf edge; its buttons bloom on hover */
+${BOX} .J-Z[role="toolbar"] { background: var(--b-lt-soft) !important; border: 2px solid var(--b-leaf); border-radius: 22px !important; }
+${BOX} .J-Z[role="toolbar"] .J-Z-axR { background: var(--b-leaf) !important; opacity: .5; }
+${BOX} .J-Z[role="toolbar"] [role="button"], ${BOX} .J-Z[role="toolbar"] [role="listbox"] { transition: transform .12s; }
+${BOX} .J-Z[role="toolbar"] [role="button"]:hover, ${BOX} .J-Z[role="toolbar"] [role="listbox"]:hover,
+${BOX} .J-Z[role="toolbar"] [aria-pressed="true"] { background-color: var(--b-flower2) !important; border-radius: 62% 38% 62% 38% / 62% 38% 62% 38% !important; transform: translateY(-1px); }
+${BOX} .J-Z[role="toolbar"] [role="option"] { font: 600 14px/1.4 ${ROUND} !important; color: var(--b-ink) !important; }
+
+/* When the reply runs past the bottom of the window, Gmail pins the Send row there (.aDj.ahe) as a white
+   panel wider than the card. Pinned, it gets the card's leaf edge and round bottom instead. */
+${BOX} .aDj.ahe { box-shadow: none !important; }
+${BOX} .aDj.ahe::before { inset: 0 -2px -2px !important; border: 2px solid var(--b-leaf) !important; border-top: 0 !important; border-radius: 0 0 22px 22px !important; }
+${BOX} .aDj.ahe::after { inset: 0 !important; background: var(--ir-paper) !important; border-radius: 0 0 20px 20px !important; }
 
 /* The user's avatar wears a flower crown */
-[data-ir-avatar-wrap] { position: relative; }
-[data-ir-avatar-wrap]::after { content: ""; position: absolute; left: -14px; top: -18px; width: 64px; height: 36px; background: center / contain no-repeat; pointer-events: none; }
+.ir-crown { position: absolute; z-index: 5; width: 64px; height: 36px; background: center / contain no-repeat; transform: rotate(-8deg); pointer-events: none; }
+
+/* Comments: a soft lagoon blue wash with a straight blue underline (never red or wavy, which would read as
+   a mistake), a blue petal pin with its number at the end, and a rounded note card with a leaf edge. */
+::highlight(ir-comment) { background-color: rgba(25, 150, 220, .14); text-decoration: underline 2px #1a8fd6; text-underline-offset: 4px; }
+.ir-pin { position: absolute; z-index: 9; min-width: 20px; height: 20px; padding: 0 5px; border: 2px solid #fff; border-radius: 62% 38% 62% 38% / 62% 38% 62% 38%;
+  background: #1a8fd6; color: #fff; font: 600 11px/16px ${ROUND}; cursor: pointer;
+  box-shadow: 0 2px 0 #0f6aa3; transition: transform .15s; }
+.ir-pin:hover { transform: translateY(-2px) rotate(-8deg) scale(1.12); }
+.ir-pin.ir-stale { background: #9aa7a4; box-shadow: none; }
+.ir-note { position: absolute; z-index: 10; width: 290px; box-sizing: border-box; padding: 10px 12px; background: #fff; color: var(--b-ink, #1d2a30);
+  border: 2px solid var(--b-leaf, #3f8f5a); border-radius: 18px; box-shadow: 0 6px 18px rgba(0, 60, 70, .18); }
+.ir-note textarea { display: block; width: 100%; box-sizing: border-box; border: 0; outline: 0; resize: none; background: transparent; color: inherit; font: 14px/1.4 system-ui, sans-serif; }
+.ir-note-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.ir-note-hint { font: 600 11px/1 ${ROUND}; opacity: .6; }
+.ir-note-delete { border: 0; border-radius: 999px; background: var(--b-flower2, #ffd9cf); color: var(--b-ink, #1d2a30); font: 600 12px/1 ${ROUND}; padding: 5px 10px; cursor: pointer; }
+.ir-note-delete[hidden] { display: none; }
 
 /* Waiting for the model: the old text bobs gently, like it is floating */
 .${BUSY_EDITOR_CLASS} { pointer-events: none; animation: ir-bob 1.4s ease-in-out infinite; }

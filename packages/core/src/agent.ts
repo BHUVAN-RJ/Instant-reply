@@ -2,7 +2,7 @@ import type { AgentEvent, ChatTurn, DraftRequest, DraftResult, Thread, ThreadSes
 import { EMPTY_VOICE } from "./contracts";
 import { buildLearnMessages, buildVoiceChatMessages, normalizeText, parseVoiceChat, revisionSignalsFromHistory, stripFence } from "./learn";
 import type { ContextProvider, EventSink, LlmProvider, Store } from "./ports";
-import { buildMessages } from "./prompt";
+import { buildMessages, fillNamePlaceholders, stripDashes, withComments } from "./prompt";
 
 export interface AgentDeps {
   store: Store;
@@ -82,7 +82,7 @@ export function createAgent(deps: AgentDeps): Agent {
   }
 
   function emptySession(threadId: string): ThreadSession {
-    return { threadId, active: false, history: [], updatedAt: 0 };
+    return { threadId, active: true, history: [], updatedAt: 0 };
   }
 
   const loadVoice = () => store.getVoice().catch(() => EMPTY_VOICE);
@@ -149,11 +149,13 @@ export function createAgent(deps: AgentDeps): Agent {
       return session;
     },
 
-    async draft({ thread, boxText }) {
-      const session = (await store.getSession(thread.id)) ?? { ...emptySession(thread.id), active: true };
+    async draft({ thread, boxText: text, comments }) {
+      // Comments travel as part of the box, so history and learning see them like any change request.
+      const boxText = withComments(text, comments);
+      const session = (await store.getSession(thread.id)) ?? emptySession(thread.id);
       const [voice, context] = await Promise.all([store.getVoice().catch(() => EMPTY_VOICE), gatherContext(thread)]);
 
-      const draft = await llm.complete(
+      const raw = await llm.complete(
         buildMessages({
           thread,
           boxText,
@@ -163,6 +165,7 @@ export function createAgent(deps: AgentDeps): Agent {
           context,
         }),
       );
+      const draft = fillNamePlaceholders(stripDashes(raw), thread.userName);
 
       const at = now();
       const previous = lastDraft(session.history);

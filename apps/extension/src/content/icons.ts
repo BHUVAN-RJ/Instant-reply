@@ -3,14 +3,17 @@ import { ACID, INK, MAG, PAPER } from "./palette";
 // Replacement glyphs for the reply toolbar while a thread is on. Gmail's buttons stay in place and keep
 // working; only their icon is swapped. Matched by the start of their tooltip, so this is English only.
 
-type IconName = "format" | "attach" | "link" | "emoji" | "photo" | "more" | "trash";
+type IconName = "format" | "attach" | "link" | "emoji" | "drive" | "photo" | "signature" | "meet" | "more" | "trash";
 
 export const ICON_LABELS: [string, IconName][] = [
   ["Formatting options", "format"],
   ["Attach files", "attach"],
   ["Insert link", "link"],
   ["Insert emoji", "emoji"],
+  ["Insert files using Drive", "drive"],
   ["Insert photo", "photo"],
+  ["Insert signature", "signature"],
+  ["Set up a time to meet", "meet"],
   ["More options", "more"],
   ["Discard draft", "trash"],
 ];
@@ -18,10 +21,13 @@ export const ICON_LABELS: [string, IconName][] = [
 // `{acc}` is the accent fill: acid at rest, magenta on hover (acid again for the discard button).
 const GLYPHS: Record<IconName, string> = {
   format: `<path fill="{ink}" fill-rule="evenodd" d="M9.5 2.5h5l4.5 13h-4l-.9-2.8H9.9L9 15.5H5zM10.9 9.5h2.4L12.1 5.6z"/><path fill="{acc}" stroke="{ink}" stroke-width="1.6" d="M4 18h16.5l-1.2 3.5H2.8z"/>`,
-  attach: `<path fill="none" stroke="{ink}" stroke-width="2.4" d="M16.5 4.5L6 15l3 3 10.5-10.5-3-3L7.5 13.5"/><path fill="{acc}" stroke="{ink}" stroke-width="1.6" d="M13 16l6.5-6.5 1.5 1.5L14.5 17.5z"/>`,
-  link: `<path fill="none" stroke="{ink}" stroke-width="2.4" d="M10.5 15.5L7.5 18.5 3.5 14.5 8.5 9.5 10.5 11.5M13.5 8.5l3-3 4 4-5 5-2-2"/><path fill="{acc}" stroke="{ink}" stroke-width="1.6" d="M8 14.5L14.5 8l1.5 1.5L9.5 16z"/>`,
+  attach: `<path fill="{acc}" stroke="{ink}" stroke-width="1.6" d="M5 7.5l8.5-4 6.5 13.5-8.5 4z"/><path fill="none" stroke="{ink}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" d="M15 7.5L9 13.5a1.8 1.8 0 002.6 2.6l6.6-6.6a3.4 3.4 0 00-4.8-4.8L6.2 11.9a5 5 0 007.1 7.1L19 13.3"/>`,
+  link: `<g transform="rotate(-40 12 12)"><rect x="1.5" y="8.2" width="10" height="7.6" fill="none" stroke="{ink}" stroke-width="2.3"/><rect x="12.5" y="8.2" width="10" height="7.6" fill="{acc}" stroke="{ink}" stroke-width="2.3"/><path stroke="{ink}" stroke-width="2.3" d="M8 12h8"/></g>`,
   emoji: `<path fill="{acc}" stroke="{ink}" stroke-width="2" d="M8 2.5h8l5.5 5.5v8L16 21.5H8L2.5 16V8z"/><path fill="none" stroke="{ink}" stroke-width="2" d="M6.5 8.5l3.2 3.2M9.7 8.5l-3.2 3.2"/><path fill="none" stroke="{ink}" stroke-width="2.4" d="M13.5 11.2l4-2"/><path fill="none" stroke="{ink}" stroke-width="1.8" d="M6.5 15.2l2.2 1.8 2.2-1.8 2.2 1.8 2.2-1.8 2.2 1.8"/>`,
+  drive: `<path fill="{acc}" stroke="{ink}" stroke-width="1.8" d="M2.5 16l4 5h12l3-5z"/><path fill="none" stroke="{ink}" stroke-width="2.3" d="M8.5 3h7l6 13M8.5 3L2.5 16M8.5 3l6.5 13"/>`,
   photo: `<g transform="rotate(-7 12 12)"><rect x="3.5" y="4.5" width="17" height="15" fill="{bg}" stroke="{ink}" stroke-width="2.2"/><path fill="{acc}" stroke="{ink}" stroke-width="1.6" d="M4.5 18.5l5.5-7 3.5 4.5 2-2.2 4 4.7z"/><path fill="{ink}" d="M15.5 6.5h3l-1.6 2.6h2l-3.6 4.2 1-3h-1.9z"/></g>`,
+  signature: `<path fill="{acc}" stroke="{ink}" stroke-width="1.6" d="M2.5 18h19l-1 3.3H2z"/><path fill="none" stroke="{ink}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M3 14.5C5 8 7 4.5 8.2 5.5s-2.4 9-.4 9 3-5 4.6-5-.4 4.4 1.6 4.4 2.6-2.4 4.4-2.4"/><path fill="{ink}" d="M17.5 4l3 3-3.8 3.8-3.4.4.4-3.4z"/>`,
+  meet: `<g transform="rotate(-5 12 12)"><rect x="3.5" y="5" width="17" height="15.5" fill="{bg}" stroke="{ink}" stroke-width="2.2"/><path fill="{acc}" stroke="{ink}" stroke-width="1.6" d="M3.5 5h17v4.5h-17z"/><path stroke="{ink}" stroke-width="2.4" d="M8 2.5v4.5M16 2.5v4.5"/><path fill="{ink}" d="M11.5 12.5h5v5h-5z"/></g>`,
   more: `<path fill="{ink}" d="M10.5 3h5.5l-2 4H8.5zM10.5 10h5.5l-2 4H8.5zM10.5 17h5.5l-2 4H8.5z"/>`,
   trash: `<path fill="none" stroke="{ink}" stroke-width="2.4" d="M3.5 7h17M9 7l1.2-3.5h3.6L15 7M5.5 7l1.8 14h9.4L18.5 7"/><path fill="{acc}" stroke="{ink}" stroke-width="1.6" d="M9 10.5h2l2.5 8h-2z"/>`,
 };
@@ -50,11 +56,14 @@ ${sel}:hover::after { background-image: ${dataUri(name, hover, INK, "#fff")}; }`
 export function tagIcons(box: HTMLElement): void {
   for (const el of box.querySelectorAll<HTMLElement>("[data-tooltip], [aria-label]")) {
     if (el.dataset.irIcon) continue;
-    // Only real buttons: Gmail also labels whole toolbars, like the formatting bar.
-    if (el.getAttribute("role") !== "button" && el.tagName !== "BUTTON") continue;
     const label = el.dataset.tooltip ?? el.getAttribute("aria-label") ?? "";
     const match = ICON_LABELS.find(([prefix]) => label.startsWith(prefix));
     if (!match || el.parentElement?.closest(`[data-ir-icon="${match[1]}"]`)) continue;
-    el.dataset.irIcon = match[1];
+    // Only real buttons: Gmail also labels whole toolbars, like the formatting bar. The "Aa" button
+    // carries its tooltip on a plain wrapper, so a labelled wrapper hands the tag to the button inside.
+    const isButton = (e: Element) => e.getAttribute("role") === "button" || e.tagName === "BUTTON";
+    const target = isButton(el) ? el : el.getAttribute("role") ? null : el.querySelector<HTMLElement>('[role="button"], button');
+    if (!target || target.dataset.irIcon) continue;
+    target.dataset.irIcon = match[1];
   }
 }

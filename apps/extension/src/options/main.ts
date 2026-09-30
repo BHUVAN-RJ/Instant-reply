@@ -1,4 +1,5 @@
 import { NOTES_SECTIONS, type ChatTurn } from "@instant-reply/core";
+import { IDENTITY_KEY, getIdentity, saveIdentity } from "../identity";
 import type { Message, VoiceOverview, VoiceResponse } from "../messages";
 
 // Settings page: shows the fixed prompt rules, the learned notes and the learning state, read only.
@@ -186,4 +187,32 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && ("voice" in changes || "settings" in changes)) void refresh();
 });
 
+// How you sign: typed values win; what Gmail showed fills the fields until then.
+const nameInput = $<HTMLInputElement>("you-name");
+const signatureInput = $<HTMLTextAreaElement>("you-signature");
+
+async function showIdentity(): Promise<void> {
+  const identity = await getIdentity();
+  if (document.activeElement !== nameInput) nameInput.value = identity.name ?? identity.seenName ?? "";
+  if (document.activeElement !== signatureInput) signatureInput.value = identity.signature ?? identity.seenSignature ?? "";
+}
+
+$<HTMLFormElement>("you").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const identity = await getIdentity();
+  const name = nameInput.value.trim(), signature = signatureInput.value.trim();
+  // Saved only when it differs from what Gmail showed, so a later change in Gmail still comes through.
+  await saveIdentity({
+    ...identity,
+    name: name && name !== identity.seenName ? name : undefined,
+    signature: signature && signature !== identity.seenSignature ? signature : undefined,
+  });
+  $("you-status").textContent = "Saved.";
+  setTimeout(() => ($("you-status").textContent = ""), 2000);
+});
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && IDENTITY_KEY in changes) void showIdentity();
+});
+
+void showIdentity();
 void refresh(true);

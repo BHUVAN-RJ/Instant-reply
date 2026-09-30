@@ -33,7 +33,11 @@ The reply box's hidden `input[name="uet"]` holds the quoted conversation as HTML
 | Reply card | `td.I5` | The visible white card. `div.aoI` > `table.aoP.HM` > `tr` > `td.I5`. The box is wider than the card (it holds the avatar column). |
 | Body table | `td.I5 > table.iN` | Everything in the card above it is the To line (collapsed recipients `.aoD.hl`, "Type of response" button). |
 | Editor chain | `table.iN` ... `td.Ap` > `div.Ar.Au` > `div.aO7` > `div.Am` | `td.Ap` has its own white background. |
-| Footer buttons | `[role="button"][data-tooltip]` | Tooltips seen: Attach files, Insert link (⌘K), Insert emoji (⌘⇧2), Insert files using Drive, Insert photo, Insert signature, Set up a time to meet, More options, Discard draft (⌘⇧D). Buttons are `div.wG.J-Z-I` in `td` cells; the switch gets its own `td` before Discard's. The formatting toggle (`.J-Z-I-KO`) has no label. |
+| Footer buttons | `[role="button"][data-tooltip]` | Tooltips seen: Attach files, Insert link (⌘K), Insert emoji (⌘⇧2), Insert files using Drive, Insert photo, Insert signature, Set up a time to meet, More options, Discard draft (⌘⇧D). Buttons are `div.wG.J-Z-I` in `td` cells; the switch gets its own `td` before Discard's. The formatting toggle ("Aa", `.J-Z-I-KO`) has no label itself; its tooltip "Formatting options" sits on a plain wrapper around it. |
+| Formatting bar | `.J-Z[role="toolbar"]` | Also labelled "Formatting options", so only real buttons get icon tags. Tooltips: Undo, Redo, Font, Size, Bold, Italic, Underline, Text color, Align, Numbered list, Bulleted list, Indent less, Indent more, Quote, Strikethrough, Remove formatting. Separators are `.J-Z-axR`. |
+| Footer row | `.aDj` > `.aDh` > `table.IZ` > `tr.btC` | When the card runs past the window bottom Gmail pins it there: `.aDj.ahe` becomes `position: fixed`, with a white `::after` panel 8px wider than the card on each side and a top shadow. Its bottom corners are rounded (16px). |
+| Card border | `td.I5` | Has its own 1px light grey border besides radius and shadow. |
+| Account name | `[aria-label^="Google Account:"]` | "Google Account: <full name>" then the email on the next line. |
 | Avatar | left of `td.I5` | The user's round avatar; not reliably inside `div.aoI`, so it is found by position. |
 
 Measured on one live box (September 2026): card 621x289, To line about 52px tall, body table starting 52px below the card top.

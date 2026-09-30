@@ -21,6 +21,10 @@ export interface Thread {
   source: string;
   subject: string;
   userEmail: string;
+  /** The user's full name, as their account shows it. */
+  userName?: string;
+  /** The user's email signature as plain text, when known. */
+  userSignature?: string;
   /** Oldest first. */
   messages: ThreadMessage[];
   /** Raw text used when the source could not split the thread into messages. */
@@ -37,7 +41,7 @@ export interface ChatTurn {
 /** Per-thread state, keyed by thread id. */
 export interface ThreadSession {
   threadId: string;
-  /** Starts false; the user turns the agent on per thread. */
+  /** Starts true; the user can turn the agent off per thread. */
   active: boolean;
   /** Tone learned for this specific thread, layered on top of the global voice. */
   threadToneNotes?: string;
@@ -74,6 +78,15 @@ export interface DraftRequest {
   thread: Thread;
   /** Whatever is in the reply box: a fresh instruction, or a draft plus requested changes. */
   boxText: string;
+  /** Change requests pinned to exact passages of the box. */
+  comments?: DraftComment[];
+}
+
+/** A change request the user pinned to a passage of the box ("make this warmer" on one sentence). */
+export interface DraftComment {
+  /** The passage, exactly as it reads in the box. */
+  quote: string;
+  note: string;
 }
 
 export interface DraftResult {

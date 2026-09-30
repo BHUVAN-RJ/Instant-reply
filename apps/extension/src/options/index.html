@@ -56,6 +56,10 @@
       form.ask { display: grid; gap: 8px; }
       textarea { width: 100%; min-height: 72px; resize: vertical; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: inherit; }
       .hint { color: var(--muted); font-size: 12px; margin: 0; }
+      form.you { display: grid; gap: 6px; }
+      form.you label { font-weight: 600; margin-top: 6px; }
+      form.you input { font: inherit; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: inherit; }
+      form.you .status { margin: 0; }
     </style>
   </head>
   <body>
@@ -69,6 +73,18 @@
 
       <div class="grid">
         <div class="col">
+          <section class="card" aria-labelledby="you-h">
+            <h2 id="you-h">How you sign</h2>
+            <p class="sub">Drafts end with just your first name for casual emails and your full signature for formal ones. Both are picked up from Gmail when it shows them; type here to override.</p>
+            <form class="you" id="you">
+              <label for="you-name">Your name</label>
+              <input id="you-name" type="text" autocomplete="name" />
+              <label for="you-signature">Your signature</label>
+              <textarea id="you-signature" placeholder="Not seen in Gmail yet. Paste your signature here."></textarea>
+              <div class="row"><button type="submit" class="primary">Save</button><span class="status" id="you-status" role="status"></span></div>
+            </form>
+          </section>
+
           <section class="card" aria-labelledby="knows-h">
             <h2 id="knows-h">What it knows about you</h2>
             <p class="sub" id="knows-meta"></p>

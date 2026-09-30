@@ -1,8 +1,9 @@
-import { BASE_RULES, createAgent, type Agent } from "@instant-reply/core";
+import { BASE_RULES, createAgent, type Agent, type Thread } from "@instant-reply/core";
 import { createChromeStore } from "../adapters/chrome-store";
 import { createOpenRouter } from "../adapters/openrouter";
 import type { DraftResponse, Message, VoiceOverview, VoiceResponse } from "../messages";
 import { contextProviders, eventSinks } from "../plugins";
+import { getIdentity, resolvedSignature } from "../identity";
 import { getSettings, saveSettings } from "../settings";
 
 // Service worker: the composition root. Wires the core agent to Chrome storage,
@@ -28,11 +29,24 @@ async function offlineAgent(): Promise<Agent> {
   });
 }
 
+/**
+ * Name: typed on the settings page, else the page's, else last seen. Signature: the one Gmail put in this
+ * box (it stays there), else typed, else last seen.
+ */
+async function withIdentity(thread: Thread): Promise<Thread> {
+  const identity = await getIdentity();
+  return {
+    ...thread,
+    userName: identity.name?.trim() || thread.userName || identity.seenName || undefined,
+    userSignature: thread.userSignature || resolvedSignature(identity) || undefined,
+  };
+}
+
 async function draft(msg: Extract<Message, { type: "draft" }>): Promise<DraftResponse> {
   const agent = await agentFromSettings();
   if (!agent) return { ok: false, error: "no-key" };
   try {
-    return { ok: true, ...(await agent.draft(msg.request)) };
+    return { ok: true, ...(await agent.draft({ ...msg.request, thread: await withIdentity(msg.request.thread) })) };
   } catch (error) {
     console.error("[instant-reply] draft failed", error);
     return { ok: false, error: "failed", detail: String(error) };

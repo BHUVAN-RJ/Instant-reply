@@ -24,36 +24,84 @@
   every real theme gets for free (box positioning, the cleared card, skin, pin and note placement,
   reduced motion) are already in mockup-kit.css, as in the real stylesheet.
 
-  Each option is one <style> block; the tabs switch between them so directions can be compared. Before
-  asking for approval, delete the options that were not picked (docs record decisions, not explorations).
+  Each option is one <style> block; the tabs switch between them so directions can be compared. Put what
+  the options share in a <style data-mk-shared> block. The coverage panel at the top lists every element a
+  theme must design (Send, every toolbar icon, Discard, ...) and marks what still looks like Gmail; the
+  tests require a full design. Before asking for approval, delete the options that were not picked
+  (docs record decisions, not explorations).
 -->
 <link rel="stylesheet" href="../kit/mockup-kit.css">
 
-<style id="theme-a">
-/* Option A: ink outline. A deliberately small example; replace it. */
-.ir-skin > .sk-edge { position: absolute; inset: -2px; border: 2px solid #1f1f1f; border-radius: 4px; background: var(--ir-paper); }
-.ir-active-box[data-ir-theme="dark"] .ir-skin > .sk-edge { border-color: #f1f1f1; }
-.ir-active-box[data-ir-head-style="rule"] .ir-skin > .sk-rule { position: absolute; left: 12px; right: 12px; top: var(--ir-head); height: 2px; background: #ff5a36; }
-.ir-active-box:not([data-ir-layout="window"])[data-ir-head-style="band"] .ir-skin > .sk-rule { position: absolute; left: 0; right: 0; top: 0; height: var(--ir-head); background: #ffe7df; }
-.ir-active-box[data-ir-layout="window"] .ir-skin > .sk-edge { inset: 0; border-width: 0 0 0 4px; border-radius: 0; }
-
-.ir-toggle { border: 1.5px dashed currentColor; background: transparent; color: inherit; border-radius: 6px; padding: 6px 10px; margin-left: 8px; font: 600 13px system-ui; cursor: pointer; }
-.ir-toggle[data-active="true"] { border-style: solid; background: #ff5a36; border-color: #ff5a36; color: #fff; }
-.ir-toggle:hover { transform: translateY(-1px); }
-.ir-toggle:focus-visible { outline: 3px solid #d63b17; outline-offset: 2px; }
-.ir-active-box[data-ir-layout="window"] .ir-toggle { font-size: 0; width: 30px; height: 30px; padding: 0; }
-.ir-refactor { border: 0; border-radius: 6px; padding: 8px 14px; margin-left: 8px; background: #1f1f1f; color: #fff; font: 600 14px system-ui; cursor: pointer; transition: transform .12s; }
-.ir-refactor:hover:not(:disabled) { transform: translateY(-1px); }
-.ir-refactor:active:not(:disabled) { transform: translateY(1px); transition-duration: .04s; }
-.ir-refactor:focus-visible { outline: 3px solid #d63b17; outline-offset: 2px; }
-.ir-active-box .dC .T-I { background: #ff5a36 !important; }
+<style data-mk-shared>
+/* Shared by every option: what the options do not disagree on. */
+.ir-active-box [data-ir-icon] { position: relative; background-image: none !important; }
+.ir-active-box [data-ir-icon] > * { opacity: 0 !important; }
+.ir-active-box [data-ir-icon]::before { content: ""; position: absolute; inset: 3px; border-radius: 8px; background: transparent; transition: background .12s; pointer-events: none; }
+.ir-active-box [data-ir-icon]:hover::before { background: rgba(255, 90, 54, .14); }
+.ir-active-box [data-ir-icon]::after { content: ""; position: absolute; left: 50%; top: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px; background: center / contain no-repeat; pointer-events: none; transition: transform .12s; }
+.ir-active-box [data-ir-icon]:hover::after { transform: translateY(-1px); }
+.ir-active-box [data-ir-icon="trash"] { transform: scale(1.2); margin-left: 6px; }
+.ir-active-box [data-ir-icon="format"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%231f1f1f%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6.5%2015.5%2012%204l5.5%2011.5M8.6%2011.2h6.8%22%2F%3E%3Cpath%20d%3D%22M4%2020h16%22%20stroke%3D%22%23ff5a36%22%20stroke-width%3D%222.2%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="format"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f1f1f1%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6.5%2015.5%2012%204l5.5%2011.5M8.6%2011.2h6.8%22%2F%3E%3Cpath%20d%3D%22M4%2020h16%22%20stroke%3D%22%23ff8a6b%22%20stroke-width%3D%222.2%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="attach"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%231f1f1f%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M15%205.8V14a5%205%200%200%201-10%200v-1.5%22%2F%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%224%22%20r%3D%221.8%22%20fill%3D%22%23ff5a36%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="attach"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f1f1f1%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M15%205.8V14a5%205%200%200%201-10%200v-1.5%22%2F%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%224%22%20r%3D%221.8%22%20fill%3D%22%23ff8a6b%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="link"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%231f1f1f%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10%2014.5a3.5%203.5%200%200%201%200-5l2.5-2.5a3.5%203.5%200%200%201%205%205l-1%201%22%2F%3E%3Cpath%20d%3D%22M14%209.5a3.5%203.5%200%200%201%200%205L11.5%2017a3.5%203.5%200%200%201-5-5l1-1%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="link"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f1f1f1%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10%2014.5a3.5%203.5%200%200%201%200-5l2.5-2.5a3.5%203.5%200%200%201%205%205l-1%201%22%2F%3E%3Cpath%20d%3D%22M14%209.5a3.5%203.5%200%200%201%200%205L11.5%2017a3.5%203.5%200%200%201-5-5l1-1%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="emoji"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%231f1f1f%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%228%22%2F%3E%3Cpath%20d%3D%22M9%2014a3.5%203.5%200%200%200%206%200%22%20stroke%3D%22%23ff5a36%22%2F%3E%3Cpath%20d%3D%22M9.5%2010h.01M14.5%2010h.01%22%20stroke-width%3D%222.6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="emoji"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f1f1f1%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%228%22%2F%3E%3Cpath%20d%3D%22M9%2014a3.5%203.5%200%200%200%206%200%22%20stroke%3D%22%23ff8a6b%22%2F%3E%3Cpath%20d%3D%22M9.5%2010h.01M14.5%2010h.01%22%20stroke-width%3D%222.6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="drive"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%231f1f1f%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%204h6l6%2010.5-3%205.5H6l-3-5.5z%22%2F%3E%3Cpath%20d%3D%22M3%2014.5h18%22%20stroke%3D%22%23ff5a36%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="drive"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f1f1f1%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%204h6l6%2010.5-3%205.5H6l-3-5.5z%22%2F%3E%3Cpath%20d%3D%22M3%2014.5h18%22%20stroke%3D%22%23ff8a6b%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="photo"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%231f1f1f%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223.5%22%20y%3D%224.5%22%20width%3D%2217%22%20height%3D%2215%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M4%2017l5-5%204%204%202-2%205%204%22%20stroke%3D%22%23ff5a36%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="photo"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f1f1f1%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223.5%22%20y%3D%224.5%22%20width%3D%2217%22%20height%3D%2215%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M4%2017l5-5%204%204%202-2%205%204%22%20stroke%3D%22%23ff8a6b%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="signature"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%231f1f1f%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.5%2015c1.6-5%203.6-9%205-8.2s-2%208%20.2%208%203-4.4%204.6-4.4-.2%204%201.8%204%202.6-2%204.4-2%22%2F%3E%3Cpath%20d%3D%22M3.5%2020h17%22%20stroke%3D%22%23ff5a36%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="signature"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f1f1f1%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.5%2015c1.6-5%203.6-9%205-8.2s-2%208%20.2%208%203-4.4%204.6-4.4-.2%204%201.8%204%202.6-2%204.4-2%22%2F%3E%3Cpath%20d%3D%22M3.5%2020h17%22%20stroke%3D%22%23ff8a6b%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="meet"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%231f1f1f%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223.5%22%20y%3D%225.5%22%20width%3D%2217%22%20height%3D%2215%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M8%203.5v4M16%203.5v4M3.5%2010h17%22%2F%3E%3Ccircle%20cx%3D%2214.5%22%20cy%3D%2215%22%20r%3D%222%22%20fill%3D%22%23ff5a36%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="meet"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f1f1f1%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223.5%22%20y%3D%225.5%22%20width%3D%2217%22%20height%3D%2215%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M8%203.5v4M16%203.5v4M3.5%2010h17%22%2F%3E%3Ccircle%20cx%3D%2214.5%22%20cy%3D%2215%22%20r%3D%222%22%20fill%3D%22%23ff8a6b%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="more"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%231f1f1f%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%225.5%22%20r%3D%221.4%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%221.4%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2218.5%22%20r%3D%221.4%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="more"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f1f1f1%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%225.5%22%20r%3D%221.4%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%221.4%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2218.5%22%20r%3D%221.4%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="trash"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%231f1f1f%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%207h16M9%207l1-3h4l1%203M6%207l1.5%2013h9L18%207%22%2F%3E%3Cpath%20d%3D%22M10%2011v6M14%2011v6%22%20stroke%3D%22%23ff5a36%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="trash"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f1f1f1%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%207h16M9%207l1-3h4l1%203M6%207l1.5%2013h9L18%207%22%2F%3E%3Cpath%20d%3D%22M10%2011v6M14%2011v6%22%20stroke%3D%22%23ff8a6b%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+.ir-active-box .J-Z[role="toolbar"] { border-radius: 8px !important; border: 1px solid rgba(128,128,128,.35); }
+[data-ir-avatar] { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #ff5a36 !important; }
 .ir-active-box [contenteditable="true"][role="textbox"] { caret-color: #ff5a36; }
+.ir-active-box, .ir-active-box * { cursor: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2228%22%20height%3D%2228%22%20viewBox%3D%220%200%2028%2028%22%3E%3Cpath%20d%3D%22M4%203v19l5-4.5%203.5%207.5%203.5-1.7-3.5-7.3H19z%22%20fill%3D%22%23fff%22%20stroke%3D%22%231f1f1f%22%20stroke-width%3D%221.6%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E") 4 3, default; }
+.ir-active-box [role="button"], .ir-active-box button:not(:disabled), .ir-active-box [data-ir-icon], .ir-active-box .ir-pin { cursor: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2228%22%20height%3D%2228%22%20viewBox%3D%220%200%2028%2028%22%3E%3Cpath%20d%3D%22M4%203v19l5-4.5%203.5%207.5%203.5-1.7-3.5-7.3H19z%22%20fill%3D%22%23ff5a36%22%20stroke%3D%22%231f1f1f%22%20stroke-width%3D%221.6%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E") 4 3, pointer; }
+.ir-active-box input, .ir-active-box textarea, .ir-active-box [contenteditable="true"][role="textbox"] { cursor: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2228%22%20height%3D%2228%22%20viewBox%3D%220%200%2028%2028%22%3E%3Cpath%20d%3D%22M9%204h10M9%2024h10M14%204v20%22%20stroke%3D%22%23fff%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M9%204h10M9%2024h10M14%204v20%22%20stroke%3D%22%23d63b17%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E") 14 14, text; }
+.ir-active-box [contenteditable="true"][role="textbox"] * { cursor: inherit; }
 .ir-active-box [contenteditable="true"][role="textbox"]::selection, .ir-active-box [contenteditable="true"][role="textbox"] ::selection { background: #d63b17; color: #fff; }
 ::highlight(ir-comment) { background-color: rgba(43, 108, 255, .14); text-decoration: underline 2px #2b6cff; }
 .ir-pin { min-width: 20px; height: 20px; border: 0; border-radius: 10px; background: #2b6cff; color: #fff; font: 600 11px system-ui; }
 .ir-pin.ir-stale { background: #9aa0a6; }
 .ir-note { padding: 8px 10px; background: #fff; color: #1f1f1f; border: 1.5px solid #1f1f1f; border-radius: 8px; }
+.ir-note-row { font-size: 11px; }
+.ir-active-box[data-ir-layout="window"] .ir-toggle { font-size: 0; width: 30px; height: 30px; padding: 0; }
+.ir-active-box[data-ir-head-style="rule"] table.iN { border-top: 10px solid transparent !important; }
 .ir-busy { opacity: .55; }
+</style>
+
+<style id="theme-a">
+/* Option A: ink outline, coral accents. A deliberately small example; replace it. */
+.ir-skin > .sk-edge { position: absolute; inset: -2px; border: 2px solid #1f1f1f; border-radius: 4px; background: var(--ir-paper); }
+.ir-active-box[data-ir-theme="dark"] .ir-skin > .sk-edge { border-color: #f1f1f1; }
+.ir-active-box[data-ir-head-style="rule"] .ir-skin > .sk-rule { position: absolute; left: 12px; right: 12px; top: var(--ir-head); height: 2px; background: #ff5a36; }
+.ir-active-box:not([data-ir-layout="window"])[data-ir-head-style="band"] .ir-skin > .sk-rule { position: absolute; left: 0; right: 0; top: 0; height: var(--ir-head); background: #ffe7df; }
+.ir-active-box:not([data-ir-layout="window"])[data-ir-head-style="band"] [data-ir-head] { color: #1f1f1f !important; }
+.ir-active-box[data-ir-layout="window"] .ir-skin > .sk-edge { inset: 0; border-width: 0 0 0 4px; border-radius: 0; }
+.ir-toggle { border: 1.5px dashed currentColor; background: transparent; color: inherit; border-radius: 6px; padding: 6px 10px; margin-left: 8px; font: 600 13px system-ui; }
+.ir-toggle[data-active="true"] { border-style: solid; background: #ff5a36; border-color: #ff5a36; color: #fff; }
+.ir-toggle:hover { transform: translateY(-1px); }
+.ir-toggle:focus-visible { outline: 3px solid #d63b17; outline-offset: 2px; }
+.ir-refactor { border: 0; border-radius: 6px; padding: 8px 14px; margin-left: 8px; background: #1f1f1f; color: #fff; font: 600 14px system-ui; transition: transform .12s; }
+.ir-refactor:hover:not(:disabled) { transform: translateY(-1px); }
+.ir-refactor:active:not(:disabled) { transform: translateY(1px); transition-duration: .04s; }
+.ir-refactor:focus-visible { outline: 3px solid #d63b17; outline-offset: 2px; }
+/* Send: Gmail's blue pill becomes a squared coral block; the arrow is a darker coral end. */
+.ir-active-box .dC, .ir-active-box .dC * { box-shadow: none !important; }
+.ir-active-box .dC .T-I { background: #ff5a36 !important; border-radius: 0 !important; transition: transform .12s, background .12s; }
+.ir-active-box .dC .aoO { border-radius: 6px 0 0 6px !important; font-weight: 700 !important; }
+.ir-active-box .dC .hG { background: #d63b17 !important; border-radius: 0 6px 6px 0 !important; }
+.ir-active-box .dC .T-I:hover { background: #e94a27 !important; transform: translateY(-1px); }
+.ir-active-box .dC .T-I:active { transform: translateY(1px); transition-duration: .04s; }
 </style>
 
 <style id="theme-b">
@@ -61,19 +109,19 @@
 .ir-skin > .sk-edge { position: absolute; inset: -2px; border: 2px solid #b8c4ff; border-radius: 18px; background: var(--ir-paper); }
 .ir-active-box[data-ir-head-style="rule"] .ir-skin > .sk-rule { position: absolute; left: 18px; right: 18px; top: var(--ir-head); height: 1px; background: #7c8cff; }
 .ir-active-box:not([data-ir-layout="window"])[data-ir-head-style="band"] .ir-skin > .sk-rule { position: absolute; left: 0; right: 0; top: 0; height: var(--ir-head); border-radius: 16px 16px 0 0; background: #eef0ff; }
+.ir-active-box:not([data-ir-layout="window"])[data-ir-head-style="band"] [data-ir-head] { color: #1f1f1f !important; }
 .ir-active-box[data-ir-layout="window"] .ir-skin > .sk-edge { inset: 0; border-width: 0; border-radius: 0; }
-.ir-toggle { border: 0; background: #eef0ff; color: #3b49c7; border-radius: 999px; padding: 6px 12px; margin-left: 8px; font: 600 13px system-ui; cursor: pointer; }
+.ir-toggle { border: 0; background: #eef0ff; color: #3b49c7; border-radius: 999px; padding: 6px 12px; margin-left: 8px; font: 600 13px system-ui; }
 .ir-toggle[data-active="true"] { background: #3b49c7; color: #fff; }
 .ir-toggle:focus-visible { outline: 3px solid #3b49c7; outline-offset: 2px; }
-.ir-active-box[data-ir-layout="window"] .ir-toggle { font-size: 0; width: 30px; height: 30px; padding: 0; }
-.ir-refactor { border: 0; border-radius: 999px; padding: 8px 16px; margin-left: 8px; background: #3b49c7; color: #fff; font: 600 14px system-ui; cursor: pointer; }
+.ir-refactor { border: 0; border-radius: 999px; padding: 8px 16px; margin-left: 8px; background: #3b49c7; color: #fff; font: 600 14px system-ui; }
 .ir-refactor:hover:not(:disabled) { background: #2e3aa3; }
 .ir-refactor:focus-visible { outline: 3px solid #3b49c7; outline-offset: 2px; }
-.ir-active-box [contenteditable="true"][role="textbox"]::selection, .ir-active-box [contenteditable="true"][role="textbox"] ::selection { background: #3b49c7; color: #fff; }
-::highlight(ir-comment) { background-color: rgba(43, 108, 255, .14); text-decoration: underline 2px #2b6cff; }
-.ir-pin { min-width: 20px; height: 20px; border: 0; border-radius: 10px; background: #2b6cff; color: #fff; font: 600 11px system-ui; }
-.ir-pin.ir-stale { background: #9aa0a6; }
-.ir-note { padding: 8px 10px; background: #fff; border: 1px solid #b8c4ff; border-radius: 14px; }
+/* Send: a soft indigo pill with a lighter arrow half that lifts on hover. */
+.ir-active-box .dC .T-I { background: #3b49c7 !important; transition: transform .15s; }
+.ir-active-box .dC .hG { background: #5563e0 !important; }
+.ir-active-box .dC .T-I:hover { transform: translateY(-2px); }
+.ir-active-box .dC .T-I:active { transform: translateY(1px); }
 </style>
 </head>
 <body>

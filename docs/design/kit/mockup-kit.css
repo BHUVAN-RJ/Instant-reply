@@ -27,6 +27,14 @@ h2 small { text-transform: none; letter-spacing: 0; font-weight: 400; }
 .mk-state > small { font-size: 11px; opacity: .6; }
 .mk-try { display: grid; grid-template-columns: repeat(3, 1fr); border-radius: 10px; overflow: hidden; }
 .mk-try > div { padding: 22px 10px; text-align: center; font-size: 12px; }
+.mk-coverage { margin: 10px 0 4px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--mk-line); background: #fff; font-size: 12px; }
+.mk-coverage strong { display: block; margin-bottom: 6px; font-size: 13px; }
+.mk-coverage div { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.mk-coverage.mk-incomplete { border-color: #f2b8b5; background: #fff6f5; }
+.mk-coverage.mk-incomplete strong { color: #b3261e; }
+.mk-coverage .mk-done { color: #1e7a3d; }
+.mk-coverage .mk-missing { color: #b3261e; font-weight: 600; }
+.mk-gallery .pv-icons [role="button"], .mk-gallery .pv-discard [role="button"] { transform: scale(1.6); margin: 6px; }
 .mk-tune { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px 22px; padding: 14px 16px;
   border: 1px solid var(--mk-line); border-radius: 10px; background: #fff; }
 .mk-tune label { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 12px; }

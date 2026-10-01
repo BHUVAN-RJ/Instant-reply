@@ -85,6 +85,12 @@ the head slot: band rules under `BAND`, rule rules under `RULE` (`theme/shared.t
 one obvious 10px step on a wide card and gives the trick away. Keep tears, jags and wobbles a few pixels
 deep at any width.
 
+**Gmail's own controls are part of the theme.** Send (with its schedule arrow), every toolbar icon
+(formatting, attach, link, emoji, Drive, photo, signature, meeting, more), Discard and the formatting bar
+must all be redrawn in the theme's language, with hover and press. A theme that restyles only its own
+Refactor button and switch next to Gmail's blue Send and grey icons looks pasted on. The mockup kit's
+coverage panel and the tests check every one of them.
+
 Sizes to design for: a card 600 to 1000px wide, a body from about 120px to very long, Send 36px tall,
 toolbar buttons about 32px with 20px glyphs, a 40px avatar. Test short and long drafts.
 
@@ -234,5 +240,8 @@ fills the colour roles and passes the same contrast checks. Document the rule th
   that gave the trick away. Fixed with tears a few pixels deep.
 - A pale fill behind Gmail text that turns light in dark mode (Beach's formatting bar): the text
   vanished. Fixed with a faint tint on dark cards.
+- Mockups that styled only Refactor and the switch, leaving Gmail's blue Send, its grey toolbar icons
+  and Discard untouched (the first new theme mockups). The kit's coverage panel and the tests now
+  require every one of them.
 - A full To line band by default: too much. It is now optional (off by default) with a plain rule as
   the default.

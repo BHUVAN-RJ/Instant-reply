@@ -111,12 +111,20 @@ turns white. Press: stamps down 2px.
 
 ### Toolbar icons (`icons`)
 
-Chunky square cut glyphs in ink (paper on dark cards) with an acid accent: a letter A on an acid slab,
-a paper clip over an acid tag, a chain link, a grinning octagon, a Drive triangle, a tilted photo, a
-signature with a pen nib, a calendar, three slanted bars for more. Details drawn on the acid accent
-(the emoji's face) are always ink, and the paper clip has a card coloured halo where it crosses the
-tag, so every glyph reads on light and dark cards. Hover: a torn acid block tilts in
-behind, the glyph turns ink with a magenta accent, lifts and tilts 6 degrees.
+Chunky square cut glyphs in ink (paper on dark cards) with an acid accent. Details drawn on the acid
+accent are always ink, and a line crossing the accent gets a card coloured halo, so every glyph reads on
+light and dark cards. Hover: a torn acid block tilts in behind, the glyph turns ink with a magenta
+accent, lifts and tilts 6 degrees.
+
+- format: a letter A standing on an acid slab.
+- attach: a paper clip over a tilted acid tag, with a card coloured halo where it crosses the tag.
+- link: two chain links at 40 degrees, the right one filled acid.
+- emoji: an acid octagon with X eyes, a slanted mouth and a zigzag grin, all in ink.
+- drive: a Drive triangle with an acid base.
+- photo: a tilted framed photo with an acid mountain and a lightning bolt sun.
+- signature: a scrawled signature with a pen nib, over an acid underline.
+- meet: a tilted calendar with an acid header and a filled ink day.
+- more: three slanted ink bars stacked.
 
 ### Discard (`discard`)
 

@@ -2,7 +2,7 @@
 
 Status: approved 2026-09-30
 
-Mockup: docs/design/beach-style-v2.html, docs/design/wave-tuning-lab.html
+Mockup: docs/design/beach/mockup.html (kit snapshot of the shipped look), docs/design/beach-style-v2.html, docs/design/wave-tuning-lab.html
 
 Design v2, built and checked live in Gmail on 2026-09-29 (mockups: `docs/design/beach-style-v2.html`,
 wave numbers: `docs/design/wave-tuning-lab.html`). Cursors, selection, the compose window, the To line
@@ -116,10 +116,18 @@ sinks 1px.
 
 ### Toolbar icons (`icons`)
 
-Rounded line glyphs in palette ink with a lt accent (a letter A over a little wave, a paper clip with
-a bead, linked rings, a sun, a Drive shape, a photo with a palm, a signature over a wave, a calendar,
-three dots), each on a ltSoft petal. Hover: the petal turns flower2, the accent turns coral, the glyph
-lifts and tilts 8 degrees.
+Rounded line glyphs in palette ink with a lt accent, each on a ltSoft petal. Hover: the petal turns
+flower2, the accent turns coral, the glyph lifts and tilts 8 degrees.
+
+- format: a letter A over a little wave.
+- attach: a paper clip with an accent bead at its tip.
+- link: two linked rings with an accent dot where they meet.
+- emoji: a sun with an accent face, rays all round.
+- drive: a Drive shape with an accent lower edge.
+- photo: a photo with a palm tree and an accent sand hill.
+- signature: a signature over an accent wave.
+- meet: a calendar with an accent day.
+- more: three dots, the middle one accent.
 
 ### Discard (`discard`)
 

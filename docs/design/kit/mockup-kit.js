@@ -9,6 +9,10 @@
  *
  * Start from docs/design/kit/starter.html. Open the page straight from disk, no build or server needed.
  *
+ * A <style data-mk-shared> block applies to every option (put what the options have in common there).
+ * The coverage panel at the top lists every element a theme must design (REQUIRED below) and marks the
+ * ones the active option still leaves as Gmail draws them. The tests read the same list.
+ *
  * MockupKit.start({
  *   title: "Theme name",
  *   note: "One line on what to look at in this round.",
@@ -32,6 +36,42 @@
     ["Insert emoji", "emoji", "☺"], ["Insert files using Drive", "drive", "△"], ["Insert photo", "photo", "▣"],
     ["Insert signature", "signature", "✎"], ["Set up a time to meet", "meet", "▦"], ["More options", "more", "⋮"],
   ];
+  // Every element a theme must design. Read by the coverage panel and by apps/extension/test/mockups.test.ts
+  // (keep it valid JSON between the markers). Each pattern is a regular expression matched against the
+  // option's CSS.
+  const REQUIRED = /*REQUIRED*/[
+    ["Card edge", "\\.ir-skin"],
+    ["To line rule (default)", "\\[data-ir-head-style=\"rule\"\\]"],
+    ["To line band (opt in)", "\\[data-ir-head-style=\"band\"\\]"],
+    ["Compose window", "\\[data-ir-layout=\"window\"\\]"],
+    ["Switch", "\\.ir-toggle\\b"],
+    ["Switch on", "\\.ir-toggle\\[data-active=\"true\"\\]"],
+    ["Refactor", "\\.ir-refactor"],
+    ["Send", "\\.dC[^{}]*\\.(T-I|aoO)"],
+    ["Send hover", "\\.dC[^{}]*:hover"],
+    ["Send press", "\\.dC[^{}]*:active"],
+    ["Schedule arrow", "\\.hG"],
+    ["Icon: formatting", "\\[data-ir-icon=\"format\"\\]"],
+    ["Icon: attach", "\\[data-ir-icon=\"attach\"\\]"],
+    ["Icon: link", "\\[data-ir-icon=\"link\"\\]"],
+    ["Icon: emoji", "\\[data-ir-icon=\"emoji\"\\]"],
+    ["Icon: Drive", "\\[data-ir-icon=\"drive\"\\]"],
+    ["Icon: photo", "\\[data-ir-icon=\"photo\"\\]"],
+    ["Icon: signature", "\\[data-ir-icon=\"signature\"\\]"],
+    ["Icon: meeting", "\\[data-ir-icon=\"meet\"\\]"],
+    ["Icon: more", "\\[data-ir-icon=\"more\"\\]"],
+    ["Icon hover", "\\[data-ir-icon[^{}]*:hover"],
+    ["Discard", "\\[data-ir-icon=\"trash\"\\]"],
+    ["Formatting bar", "\\.J-Z"],
+    ["Avatar", "\\[data-ir-avatar"],
+    ["Caret", "caret-color"],
+    ["Cursors", "cursor:\\s*url\\("],
+    ["Selection", "::selection"],
+    ["Comment mark", "::highlight\\(ir-comment\\)"],
+    ["Comment pin", "\\.ir-pin"],
+    ["Comment note", "\\.ir-note"]
+  ]/*END*/;
+
   const DRAFTS = [
     "Hi Alex,<br><br>Thursday works for me. I'll bring the updated slides and the numbers from last quarter, so we can go through them together.<br><br>Thanks,<br>Sam",
     "Hey Alex,<br><br>Thursday at 3 is perfect. I'll have the slides ready and send them over the night before.<br><br>Sam",
@@ -259,17 +299,30 @@
 
   const forced = (css) => css.replace(/:(hover|active|focus-visible)(?![\w-])/g, (_, s) => `:is(:${s}, .mk-${s})`);
 
+  /** The CSS of the active option, with the shared blocks. */
+  function optionCss() {
+    const shared = [...document.querySelectorAll("style[data-mk-shared]")].map((s) => s.textContent);
+    const src = document.getElementById(option.style);
+    return shared.join("\n") + "\n" + (src ? src.textContent : "");
+  }
+
   function applyOption(id) {
     option = cfg.options.find((o) => o.id === id) || cfg.options[0];
     for (const o of cfg.options) {
       const s = document.getElementById(o.style);
       if (s) s.media = "not all";
     }
-    const src = document.getElementById(option.style);
+    document.querySelectorAll("style[data-mk-shared]").forEach((s) => (s.media = "not all"));
     let out = $("#mk-active");
     if (!out) document.head.append((out = el('<style id="mk-active"></style>')));
-    out.textContent = src ? forced(src.textContent) : "";
+    out.textContent = forced(optionCss());
     document.querySelectorAll(".mk-tabs button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.id === option.id)));
+  }
+
+  /** Which required elements the active option designs, and which it still leaves to Gmail. */
+  function coverage() {
+    const css = optionCss().replace(/\/\*[\s\S]*?\*\//g, "");
+    return REQUIRED.map(([label, pattern]) => ({ label, done: new RegExp(pattern).test(css) }));
   }
 
   function section(title, note) {
@@ -284,6 +337,11 @@
   function render() {
     const app = $("#mk-app");
     app.innerHTML = cfg.note ? `<p class="mk-note">${cfg.note}</p>` : "";
+    const cov = coverage(), missing = cov.filter((c) => !c.done);
+    app.append(el(`<div class="mk-coverage ${missing.length ? "mk-incomplete" : "mk-complete"}">
+      <strong>${missing.length ? `${missing.length} of ${cov.length} elements still look like Gmail` : `All ${cov.length} elements designed`}</strong>
+      <div>${cov.map((c) => `<span class="${c.done ? "mk-done" : "mk-missing"}">${c.done ? "✓" : "✗"} ${c.label}</span>`).join("")}</div>
+    </div>`));
     marked.length = 0;
     const variants = state.variant === "all" ? cfg.variants : [state.variant];
 
@@ -306,6 +364,28 @@
       const node = gmail(mode, windowBox(kind, true), `${kind === "compose" ? "new email" : "popped out reply"}, ${variants[0]}, ${mode} Gmail`);
       grid.append(node);
       dress($(".aoI", node), variants[0]);
+    }
+
+    cols = section("Send row and toolbar icons", "Send, the schedule arrow, every toolbar icon and Discard, large, at rest and on hover");
+    grid = el('<div class="mk-cols"></div>');
+    cols.append(grid);
+    for (const mode of ["light", "dark"]) {
+      const cell = (label, inner) => `<div class="mk-state">${inner}<small>${label}</small></div>`;
+      const icon = (name, label, glyph, cls) => `<div role="button" class="${cls}" data-tooltip="${label}"><span>${glyph}</span></div>`;
+      const row = (cls) => ICONS.map(([label, name, glyph]) => cell(name, `<span class="pv-icons">${icon(name, label, glyph, cls)}</span>`)).join("")
+        + cell("discard", `<span class="pv-discard">${icon("trash", "Discard draft", "🗑", cls)}</span>`);
+      const node = gmail(mode, `<div class="aoI mk-states mk-gallery" data-compose-id="mkg-${mode}">
+        <span class="mk-label">Send</span><div class="mk-row">${cell("rest", `<div class="dC"><div class="T-I aoO" role="button">Send</div><div class="T-I hG" role="button"><span>▾</span></div></div>`)}${cell("hover", `<div class="dC mk-hover"><div class="T-I aoO mk-hover" role="button">Send</div><div class="T-I hG" role="button"><span>▾</span></div></div>`)}${cell("arrow hover", `<div class="dC"><div class="T-I aoO" role="button">Send</div><div class="T-I hG mk-hover" role="button"><span>▾</span></div></div>`)}</div>
+        <span class="mk-label">Icons, rest</span><div class="mk-row">${row("")}</div>
+        <span class="mk-label">Icons, hover</span><div class="mk-row">${row("mk-hover")}</div>
+      </div>`, `${variants[0]}, ${mode} Gmail`);
+      grid.append(node);
+      const box = $(".aoI", node);
+      Object.assign(box.dataset, { irTheme: mode, irVariant: variants[0], irLayout: "card", irHeadStyle: "rule" });
+      box.style.setProperty("--ir-paper", mode === "light" ? "#ffffff" : "#2c2c2c");
+      box.style.background = "var(--ir-paper)";
+      box.classList.add("ir-active-box");
+      tagIcons(box);
     }
 
     cols = section("States", "every state forced side by side");

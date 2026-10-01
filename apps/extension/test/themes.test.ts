@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NEW_MARK_INTRO, asNewMark, countShown, showsNew } from "../src/appearance";
 import { CSS_SLOTS, PLAIN_PATTERN, type SwooshContext, type ThemePack } from "../src/content/theme/contract";
+import { ICON_LABELS } from "../src/content/theme/icons";
 import { playSwoosh, startThinking } from "../src/content/theme/run";
 import { buildStylesheet } from "../src/content/theme/stylesheet";
 import { THEMES } from "../src/content/themes";
@@ -17,6 +18,7 @@ const themeDir = (id: string) => join(root, "src/content/themes", id);
 const templatePath = join(root, "../../docs/themes/DESIGN_TEMPLATE.md");
 const url = (file: string) => `chrome-extension://test/fonts/${file}`;
 const isPlain = (css: string) => PLAIN_PATTERN.test(css.trim());
+const strip = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
 
 // --- DESIGN.md --------------------------------------------------------------------------------------
 
@@ -82,6 +84,15 @@ describe.each(THEMES.map((t) => [t.meta.id, t] as const))("theme %s", (id, pack)
       for (const role of ["edge", "accent", "strong", "onStrong"]) expect(colours, role).toMatch(new RegExp(`\\b${role}\\b`));
     });
 
+    it("describes every toolbar icon by name", () => {
+      const icons = section(md, slotHeading("icons")) ?? "";
+      for (const [, name] of ICON_LABELS.filter(([, n]) => n !== "trash")) {
+        expect(filled(icons.match(new RegExp(`^- ${name}: (.+)$`, "m"))?.[1] ?? null), `- ${name}: ...`).toBe(true);
+      }
+      expect(filled(section(md, slotHeading("send"))), "Send").toBe(true);
+      expect(section(md, slotHeading("send")) ?? "").toMatch(/hover/i);
+    });
+
     it("designs every cursor", () => {
       const cursors = section(md, slotHeading("cursor")) ?? "";
       for (const kind of ["Arrow", "Hand", "Text cursor"]) expect(filled(cursors.match(new RegExp(`^- ${kind}: (.+)$`, "m"))?.[1] ?? null), kind).toBe(true);
@@ -130,6 +141,19 @@ describe.each(THEMES.map((t) => [t.meta.id, t] as const))("theme %s", (id, pack)
       }
       // The rule between the To line and the body is the default, and always used in a window.
       if (!isPlain(pack.css.head)) expect(pack.css.head).toContain('[data-ir-head-style="rule"]');
+    });
+
+    it("restyles Send, every toolbar icon, Discard and the formatting bar", () => {
+      // These are Gmail's own controls; left alone they break the look, so they can never be plain.
+      for (const slot of ["send", "icons", "discard", "formatBar"] as const) expect(isPlain(pack.css[slot]), `${slot} is plain`).toBe(false);
+      const send = strip(pack.css.send);
+      expect(send).toMatch(/\.dC[^{}]*\.(T-I|aoO)/);
+      expect(send, "Send hover").toMatch(/\.dC[^{}]*:hover/);
+      expect(send, "Send press").toMatch(/\.dC[^{}]*:active/);
+      expect(send + strip(pack.meta.variants.map((v) => pack.variantCss(v)).join("")), "schedule arrow").toMatch(/\.hG/);
+      const glyphs = strip(pack.css.icons + pack.css.discard + pack.meta.variants.map((v) => pack.variantCss(v)).join(""));
+      for (const [, name] of ICON_LABELS) expect(glyphs, `glyph for ${name}`).toMatch(new RegExp(`\\[data-ir-icon="${name}"\\][^{}]*\\{[^}]*background-image`));
+      expect(strip(pack.css.icons), "icon hover").toMatch(/\[data-ir-icon[^{}]*:hover/);
     });
 
     it("has labels and a skin", () => {

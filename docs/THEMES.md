@@ -89,7 +89,8 @@ and the draft being written exactly once even if a phase throws.
    and the colour roles for each. Do not write theme code yet.
 3. **Mock it up.** Copy `docs/design/kit/starter.html` to `docs/design/<id>/mockup.html` and draw the
    design with the kit: one option tab per direction you are weighing, real selectors, every section
-   (reply box, compose window, states, cursors), the swoosh prototyped with the Refactor button, and
+   (reply box, compose window, states, cursors), Send and every toolbar icon redrawn (the coverage panel
+   shows what is missing), the swoosh prototyped with the Refactor button, and
    sliders for any numbers that need feel. A separate lab page next to it is fine for a complex motion
    (Beach's `wave-tuning-lab.html`).
 4. **Iterate with the user.** Open the mockup for them (it opens from disk), ask which option and what
@@ -103,8 +104,10 @@ and the draft being written exactly once even if a phase throws.
    Once registered, the tests check it (and require the approved status, which is why registering
    comes after approval). Fonts go in `apps/extension/public/fonts`, open licence only.
 7. **Test.** `npm test` and `npm run build` must pass. The tests check that DESIGN.md is approved, names
-   a mockup that exists, and covers every slot, swoosh phase, cursor, colour role and variant; that every slot is filled or
-   explicitly plain; that fonts exist and are used; that variants are only ones the pack ships; that
+   a kit mockup whose every option designs every element, describes each toolbar icon by name, and
+   covers every slot, swoosh phase, cursor, colour role and variant; that every slot is filled or
+   explicitly plain (Send, the icons, Discard and the formatting bar never can be, and every icon needs
+   its own glyph); that fonts exist and are used; that variants are only ones the pack ships; that
    the strong colour reads on white and dark; that comments are never red or wavy; that cursors are
    still and at most 32px; that To line rules sit under `BAND` and a `RULE` style exists; that the
    window design is scoped to the window; and that the stylesheet keeps its guardrails.
@@ -139,9 +142,14 @@ example to copy. A mockup page is plain HTML that opens from disk:
   `data-ir-variant`, `skin` is the markup behind the card, `tune` adds sliders (values persist and can
   be copied), `swoosh` has the contract's `before`, `during`, `after` with
   `ctx.ghost()`, `ctx.layer()` and `ctx.tune`.
-- Sections: reply box (light and dark, comments placed, the Refactor button runs your swoosh, a thread
-  that is off), compose window (new email and popped out reply), every state forced side by side, and
-  the three cursors. The bar toggles the To line band, the "New" mark and how long the fake model
+- Sections: a coverage panel listing every element a theme must design (Send, the schedule arrow, each
+  toolbar icon, Discard, the formatting bar, cursors, comments...) with what still looks like Gmail in
+  red; reply box (light and dark, comments placed, the Refactor button runs your swoosh, a thread that
+  is off); compose window (new email and popped out reply); Send and every toolbar icon large, at rest
+  and on hover; every state forced side by side; and the three cursors.
+- Put what all options share in a `<style data-mk-shared>` block.
+- The tests require every option of a theme's kit mockup, and the starter, to design every element on
+  the list. Gmail's Send, its icons, Discard and the formatting bar are never left as Gmail draws them. The bar toggles the To line band, the "New" mark and how long the fake model
   thinks.
 
 ## The preview

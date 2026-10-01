@@ -85,12 +85,23 @@ Refactor get smaller so Gmail keeps room for its toolbar icons.>
 
 ### Send (`send`)
 
-<fill: Send and the schedule arrow, rest, hover, press, focus.>
+<fill: Gmail's blue Send button and its schedule arrow, restyled to belong to the theme: shape, colour,
+type, and how each reacts on hover, press and focus. Never leave Gmail's blue pill.>
 
 ### Toolbar icons (`icons`)
 
-<fill: the glyph style for attach, link, emoji, Drive, photo, signature, meeting, more options, and the
-backdrop behind them on hover.>
+<fill: the glyph style shared by every icon, the backdrop behind it on hover, and how glyphs stay
+readable on dark cards. Then one line per icon (the tests check each one):>
+
+- format: <fill>
+- attach: <fill>
+- link: <fill>
+- emoji: <fill>
+- drive: <fill>
+- photo: <fill>
+- signature: <fill>
+- meet: <fill>
+- more: <fill>
 
 ### Discard (`discard`)
 

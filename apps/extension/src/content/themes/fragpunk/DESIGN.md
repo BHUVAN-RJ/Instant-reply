@@ -2,6 +2,8 @@
 
 Status: approved 2026-09-30
 
+Mockup: docs/design/fragpunk/mockup.html (snapshot of the shipped look; the swoosh runs in the preview)
+
 Inline replies built and checked live in Gmail on 2026-09-29. Cursors, selection, the compose window,
 the To line rule and the pixel sized tears added and approved on 2026-09-30.
 

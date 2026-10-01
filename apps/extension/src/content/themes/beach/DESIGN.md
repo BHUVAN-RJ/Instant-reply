@@ -2,6 +2,8 @@
 
 Status: approved 2026-09-30
 
+Mockup: docs/design/beach-style-v2.html, docs/design/wave-tuning-lab.html
+
 Design v2, built and checked live in Gmail on 2026-09-29 (mockups: `docs/design/beach-style-v2.html`,
 wave numbers: `docs/design/wave-tuning-lab.html`). Cursors, selection, the compose window, the To line
 rule, the small waves while thinking and the finds without a "New" carrier added and approved on

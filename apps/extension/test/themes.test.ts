@@ -62,6 +62,13 @@ describe.each(THEMES.map((t) => [t.meta.id, t] as const))("theme %s", (id, pack)
       expect(md).toMatch(/^Status: approved \d{4}-\d{2}-\d{2}$/m);
     });
 
+    it("names a mockup that exists", () => {
+      const line = md.match(/^Mockup: (.+)$/m)?.[1] ?? "";
+      const files = [...line.matchAll(/docs\/design\/[\w./-]+\.html/g)].map((m) => m[0]);
+      expect(files.length, "a Mockup: line naming docs/design/... files").toBeGreaterThan(0);
+      for (const file of files) expect(existsSync(join(root, "../..", file)), file).toBe(true);
+    });
+
     it("fills every top section", () => {
       for (const s of TOP_SECTIONS) expect(filled(section(md, new RegExp(`^## ${s}\\s*$`))), `## ${s}`).toBe(true);
     });

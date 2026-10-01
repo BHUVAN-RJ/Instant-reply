@@ -201,15 +201,19 @@ fills the colour roles and passes the same contrast checks. Document the rule th
 2. **Family.** Decide the shape family, the motion verb, the display font and the colour roles.
 3. **Ideas per element.** For every row of the canvas table, both layouts (card and window), both To
    line styles (band and rule), the three cursors and the four swoosh phases, sketch two or three ideas
-   from the world, then pick one. Keep the rejected ones out of the docs.
-4. **Write DESIGN.md** from the template, concretely: shapes, colours with hex, sizes in pixels, every
-   state, timings. Keep `Status: draft`.
-5. **Approval.** Show the user DESIGN.md (and a mockup if the motion needs one). Only their yes sets
-   `Status: approved`. Then build.
-6. **Build and preview.** Implement, register the theme, then check every section of the preview:
-   both Gmail modes, every variant, every state, both layouts, the band on and off, `&wide`, cursors,
-   colour roles, Refactor with and without "New". If something has to change, change DESIGN.md first
-   and tell the user.
+   from the world. Write them into DESIGN.md (`Status: draft`) concretely: shapes, colours with hex,
+   sizes in pixels, every state, timings.
+4. **Mock it up.** Draw the directions in a mockup with the kit (`docs/design/kit/starter.html`), one
+   option tab each, on real selectors, with the swoosh prototyped and sliders for numbers that need feel.
+   Seeing two directions side by side decides faster than any description.
+5. **Iterate.** Show the user the mockup, take their notes, revise, repeat. Keep DESIGN.md in step with
+   the option being kept. When one is picked, delete the others; the mockup that stays is the record.
+6. **Approval.** Ask for a yes on DESIGN.md and the final mockup together. Only their yes sets
+   `Status: approved`.
+7. **Build and preview.** Port the mockup's CSS and swoosh into the pack, register it, then check every
+   section of the preview: both Gmail modes, every variant, every state, both layouts, the band on and
+   off, `&wide`, cursors, colour roles, Refactor with and without "New". If something has to change,
+   change DESIGN.md and the mockup first and tell the user.
 
 ## 12. Mistakes we have already made
 

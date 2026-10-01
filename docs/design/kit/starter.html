@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme mockup</title>
+<!--
+  Mockup starter. Copy to docs/design/<id>/mockup.html (keep the ../kit/ paths), rename the theme, and
+  replace the example options with your own. Open it straight from disk.
+
+  Write CSS exactly as the real theme will (see docs/THEMES.md, "Layouts and To line styles"):
+    .ir-active-box                          an active reply box (BOX)
+    .ir-active-box:not([data-ir-layout="window"])   inline reply in Gmail's card (CARD)
+    .ir-active-box[data-ir-layout="window"]         a new email or popped out reply (WINDOW)
+    .ir-active-box[data-ir-head-style="rule"]       To line rule, the default (RULE)
+    .ir-active-box:not([data-ir-layout="window"])[data-ir-head-style="band"]  To line band (BAND)
+    .ir-skin > ...                          your skin markup, sized to the card (--ir-head = To line height)
+    [data-ir-head]                          the To line (only recolour it under BAND)
+    [data-ir-theme="dark"]                  dark Gmail; --ir-paper is the card's own background
+    [data-ir-variant="<id>"]                one variant
+    .ir-toggle[data-active="true"], .ir-refactor, .dC .T-I.aoO, .dC .hG, [data-ir-icon="<name>"]
+    [data-ir-avatar], [data-ir-avatar-wrap], ::highlight(ir-comment), .ir-pin, .ir-stale, .ir-note
+  :hover, :active and :focus-visible are forced in the States section automatically. Layout mechanics
+  every real theme gets for free (box positioning, the cleared card, skin, pin and note placement,
+  reduced motion) are already in mockup-kit.css, as in the real stylesheet.
+
+  Each option is one <style> block; the tabs switch between them so directions can be compared. Before
+  asking for approval, delete the options that were not picked (docs record decisions, not explorations).
+-->
+<link rel="stylesheet" href="../kit/mockup-kit.css">
+
+<style id="theme-a">
+/* Option A: ink outline. A deliberately small example; replace it. */
+.ir-skin > .sk-edge { position: absolute; inset: -2px; border: 2px solid #1f1f1f; border-radius: 4px; background: var(--ir-paper); }
+.ir-active-box[data-ir-theme="dark"] .ir-skin > .sk-edge { border-color: #f1f1f1; }
+.ir-active-box[data-ir-head-style="rule"] .ir-skin > .sk-rule { position: absolute; left: 12px; right: 12px; top: var(--ir-head); height: 2px; background: #ff5a36; }
+.ir-active-box:not([data-ir-layout="window"])[data-ir-head-style="band"] .ir-skin > .sk-rule { position: absolute; left: 0; right: 0; top: 0; height: var(--ir-head); background: #ffe7df; }
+.ir-active-box[data-ir-layout="window"] .ir-skin > .sk-edge { inset: 0; border-width: 0 0 0 4px; border-radius: 0; }
+
+.ir-toggle { border: 1.5px dashed currentColor; background: transparent; color: inherit; border-radius: 6px; padding: 6px 10px; margin-left: 8px; font: 600 13px system-ui; cursor: pointer; }
+.ir-toggle[data-active="true"] { border-style: solid; background: #ff5a36; border-color: #ff5a36; color: #fff; }
+.ir-toggle:hover { transform: translateY(-1px); }
+.ir-toggle:focus-visible { outline: 3px solid #d63b17; outline-offset: 2px; }
+.ir-active-box[data-ir-layout="window"] .ir-toggle { font-size: 0; width: 30px; height: 30px; padding: 0; }
+.ir-refactor { border: 0; border-radius: 6px; padding: 8px 14px; margin-left: 8px; background: #1f1f1f; color: #fff; font: 600 14px system-ui; cursor: pointer; transition: transform .12s; }
+.ir-refactor:hover:not(:disabled) { transform: translateY(-1px); }
+.ir-refactor:active:not(:disabled) { transform: translateY(1px); transition-duration: .04s; }
+.ir-refactor:focus-visible { outline: 3px solid #d63b17; outline-offset: 2px; }
+.ir-active-box .dC .T-I { background: #ff5a36 !important; }
+.ir-active-box [contenteditable="true"][role="textbox"] { caret-color: #ff5a36; }
+.ir-active-box [contenteditable="true"][role="textbox"]::selection, .ir-active-box [contenteditable="true"][role="textbox"] ::selection { background: #d63b17; color: #fff; }
+::highlight(ir-comment) { background-color: rgba(43, 108, 255, .14); text-decoration: underline 2px #2b6cff; }
+.ir-pin { min-width: 20px; height: 20px; border: 0; border-radius: 10px; background: #2b6cff; color: #fff; font: 600 11px system-ui; }
+.ir-pin.ir-stale { background: #9aa0a6; }
+.ir-note { padding: 8px 10px; background: #fff; color: #1f1f1f; border: 1.5px solid #1f1f1f; border-radius: 8px; }
+.ir-busy { opacity: .55; }
+</style>
+
+<style id="theme-b">
+/* Option B: same idea, softer. Shows how two directions sit side by side; delete when one is picked. */
+.ir-skin > .sk-edge { position: absolute; inset: -2px; border: 2px solid #b8c4ff; border-radius: 18px; background: var(--ir-paper); }
+.ir-active-box[data-ir-head-style="rule"] .ir-skin > .sk-rule { position: absolute; left: 18px; right: 18px; top: var(--ir-head); height: 1px; background: #7c8cff; }
+.ir-active-box:not([data-ir-layout="window"])[data-ir-head-style="band"] .ir-skin > .sk-rule { position: absolute; left: 0; right: 0; top: 0; height: var(--ir-head); border-radius: 16px 16px 0 0; background: #eef0ff; }
+.ir-active-box[data-ir-layout="window"] .ir-skin > .sk-edge { inset: 0; border-width: 0; border-radius: 0; }
+.ir-toggle { border: 0; background: #eef0ff; color: #3b49c7; border-radius: 999px; padding: 6px 12px; margin-left: 8px; font: 600 13px system-ui; cursor: pointer; }
+.ir-toggle[data-active="true"] { background: #3b49c7; color: #fff; }
+.ir-toggle:focus-visible { outline: 3px solid #3b49c7; outline-offset: 2px; }
+.ir-active-box[data-ir-layout="window"] .ir-toggle { font-size: 0; width: 30px; height: 30px; padding: 0; }
+.ir-refactor { border: 0; border-radius: 999px; padding: 8px 16px; margin-left: 8px; background: #3b49c7; color: #fff; font: 600 14px system-ui; cursor: pointer; }
+.ir-refactor:hover:not(:disabled) { background: #2e3aa3; }
+.ir-refactor:focus-visible { outline: 3px solid #3b49c7; outline-offset: 2px; }
+.ir-active-box [contenteditable="true"][role="textbox"]::selection, .ir-active-box [contenteditable="true"][role="textbox"] ::selection { background: #3b49c7; color: #fff; }
+::highlight(ir-comment) { background-color: rgba(43, 108, 255, .14); text-decoration: underline 2px #2b6cff; }
+.ir-pin { min-width: 20px; height: 20px; border: 0; border-radius: 10px; background: #2b6cff; color: #fff; font: 600 11px system-ui; }
+.ir-pin.ir-stale { background: #9aa0a6; }
+.ir-note { padding: 8px 10px; background: #fff; border: 1px solid #b8c4ff; border-radius: 14px; }
+</style>
+</head>
+<body>
+<script src="../kit/mockup-kit.js"></script>
+<script>
+MockupKit.start({
+  title: "Starter",
+  note: "Example only: two options to compare, one tunable number, a fade swoosh. Replace all of it.",
+  options: [
+    { id: "a", label: "A: ink outline", style: "theme-a" },
+    { id: "b", label: "B: soft pill", style: "theme-b" },
+  ],
+  variants: ["day"],
+  skin: '<i class="sk-edge"></i><i class="sk-rule"></i>',
+  labels: { refactor: "Refactor", working: "Working" },
+  tune: [{ name: "fadeMs", label: "Fade (ms)", min: 100, max: 2000, step: 50, value: 600 }],
+  swoosh: {
+    // Before: return a function that stops the loop.
+    before(ctx) {
+      ctx.editor.style.transition = "opacity .4s";
+      return () => (ctx.editor.style.transition = "");
+    },
+    // During: write the draft under a copy of the old text, then fade the copy away.
+    async during(ctx, write) {
+      const ghost = ctx.ghost();
+      ghost.style.background = "var(--ir-paper)";
+      write();
+      await ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ctx.tune.fadeMs, easing: "ease-in" }).finished;
+      ghost.remove();
+    },
+    // After: the settle, and the "New" mark when ctx.showNew.
+    after(ctx) {
+      if (!ctx.showNew) return;
+      const mark = ctx.layer("div");
+      mark.innerHTML = '<span style="position:absolute;right:16px;top:8px;font:700 13px system-ui;color:#ff5a36">New</span>';
+      mark.animate([{ opacity: 0 }, { opacity: 1, offset: .2 }, { opacity: 1, offset: .8 }, { opacity: 0 }], { duration: 1800 }).finished.then(() => mark.remove());
+    },
+  },
+});
+</script>
+</body>
+</html>

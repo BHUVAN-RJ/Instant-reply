@@ -8,6 +8,8 @@ could build it without asking. Replace every `<fill>`; the tests fail on any lef
 
 Status: draft
 
+Mockup: <fill: path(s) under docs/design/, e.g. docs/design/<id>/mockup.html>
+
 The status line changes to `Status: approved YYYY-MM-DD` only when the user has read this design and
 said yes. An agent never sets it on its own.
 

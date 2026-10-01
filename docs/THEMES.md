@@ -12,6 +12,8 @@ This guide is for anyone, human or agent, adding or changing a theme. Its compan
 - `docs/themes/DESIGN_TEMPLATE.md`: the form every theme fills in as its `DESIGN.md`.
 - `apps/extension/src/content/themes/fragpunk/DESIGN.md` and `.../beach/DESIGN.md`: two approved,
   very different themes. Read both; they solve every slot two ways.
+- The mockup kit (`docs/design/kit/`): how designs are drawn and iterated before any theme code. See
+  "Mockups".
 - The preview: `npm run preview` from the repo root, then open the printed address (port 5199 unless it
   is taken). It runs every registered theme's real code on a stand in for Gmail. See "The preview".
 
@@ -82,32 +84,65 @@ and the draft being written exactly once even if a phase throws.
    existing DESIGN.md files, with the preview open on each theme.
 2. **Design every element.** Copy the template to `themes/<id>/DESIGN.md` and keep `Status: draft`.
    For each slot, both layouts, both To line styles, the three cursors and the four swoosh phases,
-   come up with two or three ideas from the theme's world, pick one, and write it down concretely:
-   shape, colour with hex, size in pixels, every state, timing. Decide the variants, the rule that picks
-   them, and the colour roles for each. Make sure it all reads as one look. A mockup page in
-   `docs/design/<id>/` helps when motion is hard to describe. Do not write theme code yet.
-3. **Get approval.** Show the user the DESIGN.md (and a mockup if you made one) and ask. Only their yes
-   sets `Status: approved YYYY-MM-DD`; never set it yourself. If they want changes, change DESIGN.md and
-   ask again.
-4. **Build.** Write the pack, then register it in `content/themes/index.ts` and `src/theme-list.ts`.
+   come up with two or three ideas from the theme's world and write them down concretely: shape,
+   colour with hex, size in pixels, every state, timing. Decide the variants, the rule that picks them,
+   and the colour roles for each. Do not write theme code yet.
+3. **Mock it up.** Copy `docs/design/kit/starter.html` to `docs/design/<id>/mockup.html` and draw the
+   design with the kit: one option tab per direction you are weighing, real selectors, every section
+   (reply box, compose window, states, cursors), the swoosh prototyped with the Refactor button, and
+   sliders for any numbers that need feel. A separate lab page next to it is fine for a complex motion
+   (Beach's `wave-tuning-lab.html`).
+4. **Iterate with the user.** Open the mockup for them (it opens from disk), ask which option and what
+   to change, revise, and repeat. Each round, update DESIGN.md to match the option being kept. When one
+   direction is picked, delete the other options from the mockup (docs keep decisions, not
+   explorations), and add a `Mockup:` line to DESIGN.md naming the file(s).
+5. **Get approval.** Ask for a yes on DESIGN.md and the final mockup together. Only their yes sets
+   `Status: approved YYYY-MM-DD`; never set it yourself. If they want changes, go back to step 4.
+6. **Build.** Port the mockup's CSS into the pack's `styles.ts` (same selectors, now split by slot and
+   using the helpers) and its swoosh into the pack's code, then register it in `content/themes/index.ts` and `src/theme-list.ts`.
    Once registered, the tests check it (and require the approved status, which is why registering
    comes after approval). Fonts go in `apps/extension/public/fonts`, open licence only.
-5. **Test.** `npm test` and `npm run build` must pass. The tests check that DESIGN.md is approved and
-   covers every slot, swoosh phase, cursor, colour role and variant; that every slot is filled or
+7. **Test.** `npm test` and `npm run build` must pass. The tests check that DESIGN.md is approved, names
+   a mockup that exists, and covers every slot, swoosh phase, cursor, colour role and variant; that every slot is filled or
    explicitly plain; that fonts exist and are used; that variants are only ones the pack ships; that
    the strong colour reads on white and dark; that comments are never red or wavy; that cursors are
    still and at most 32px; that To line rules sit under `BAND` and a `RULE` style exists; that the
    window design is scoped to the window; and that the stylesheet keeps its guardrails.
-6. **Check in the preview.** Go through every section for your theme, every variant, light and dark,
+8. **Check in the preview.** Go through every section for your theme, every variant, light and dark,
    the To line band on and off, and `&wide`. Fix what looks wrong, in DESIGN.md first if it changes the
    design.
-7. **Hand over.** Tell the user to reload the extension (`npm run build`, then reload it on
+9. **Hand over.** Tell the user to reload the extension (`npm run build`, then reload it on
    chrome://extensions) and pick the theme in the popup to check it live in Gmail.
 
 ## Changing a theme
 
-Change DESIGN.md first and get it approved, then the code. A variant never adds new shapes or motion
+Start from the shipped look: `npm run mockup:snapshot -- <id>` writes it into
+`docs/design/<id>/mockup.html` (add `--force` to replace an older one). Add your change as a second
+option next to "Current", iterate with the user, then update DESIGN.md, get it approved, and only then
+change the code. A variant never adds new shapes or motion
 on its own: if it needs to, the change goes into DESIGN.md for every variant.
+
+## Mockups
+
+Mockups are how a design is shown, compared and tuned before it is built. Every theme keeps its final
+mockup in `docs/design/<id>/` and names it on a `Mockup:` line in DESIGN.md (the tests check the files
+exist).
+
+The kit (`docs/design/kit/`): `mockup-kit.js`, `mockup-kit.css` (it reuses the preview's Gmail stand
+in, so a mockup and the shipped theme sit on the same markup), and `starter.html`, a small working
+example to copy. A mockup page is plain HTML that opens from disk:
+
+- Each option is one `<style>` block written against the real selectors (`.ir-active-box`,
+  `[data-ir-layout="window"]`, `[data-ir-head-style="rule"]`, `.ir-skin`, `.ir-toggle`, ...); the tabs
+  in the bar switch between them. The kit already includes what every theme gets for free.
+- `MockupKit.start({ title, options, variants, skin, labels, tune, swoosh, ornament })`: variants become
+  `data-ir-variant`, `skin` is the markup behind the card, `tune` adds sliders (values persist and can
+  be copied), `swoosh` has the contract's `before`, `during`, `after` with
+  `ctx.ghost()`, `ctx.layer()` and `ctx.tune`.
+- Sections: reply box (light and dark, comments placed, the Refactor button runs your swoosh, a thread
+  that is off), compose window (new email and popped out reply), every state forced side by side, and
+  the three cursors. The bar toggles the To line band, the "New" mark and how long the fake model
+  thinks.
 
 ## The preview
 

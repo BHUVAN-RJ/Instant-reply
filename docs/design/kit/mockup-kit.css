@@ -1,0 +1,54 @@
+/* Instant Reply mockup kit: the page around a theme mockup. The Gmail stand in itself is the preview's
+   (one source for both), so a mockup's theme CSS targets exactly what the real theme targets. */
+@import url("../../../apps/extension/preview/gmail.css");
+
+:root { color-scheme: light; --mk-ink: #1d1d1f; --mk-muted: #6b6b72; --mk-line: #e3e3e8; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #fbfbfc; color: var(--mk-ink); font: 14px/1.45 system-ui, -apple-system, sans-serif; }
+.mk-bar { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 10px 20px;
+  background: rgba(251, 251, 252, .95); border-bottom: 1px solid var(--mk-line); backdrop-filter: blur(6px); }
+.mk-bar h1 { font-size: 15px; margin: 0 8px 0 0; }
+.mk-bar select, .mk-bar button { font: inherit; padding: 3px 8px; }
+.mk-tabs { display: flex; gap: 4px; }
+.mk-tabs button { border: 1px solid var(--mk-line); background: #fff; border-radius: 6px; cursor: pointer; }
+.mk-tabs button[aria-pressed="true"] { background: var(--mk-ink); color: #fff; border-color: var(--mk-ink); }
+main { padding: 8px 20px 60px; max-width: 1500px; margin: 0 auto; }
+.mk-note { color: var(--mk-muted); font-size: 13px; max-width: 900px; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--mk-muted); margin: 28px 0 10px; }
+h2 small { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.mk-cap { font-size: 12px; color: var(--mk-muted); margin: 0 0 6px; }
+.mk-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(560px, 1fr)); gap: 16px; }
+.mk-cols.mk-boxes { grid-template-columns: minmax(0, 1000px); }
+.mk-cols.mk-windows { grid-template-columns: repeat(auto-fill, 640px); }
+.mk-states { display: grid; grid-template-columns: 110px 1fr; gap: 12px 16px; align-items: center; padding: 18px; border-radius: 12px; }
+.mk-states .mk-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
+.mk-states .mk-label { font-size: 12px; opacity: .7; }
+.mk-state { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.mk-state > small { font-size: 11px; opacity: .6; }
+.mk-try { display: grid; grid-template-columns: repeat(3, 1fr); border-radius: 10px; overflow: hidden; }
+.mk-try > div { padding: 22px 10px; text-align: center; font-size: 12px; }
+.mk-tune { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px 22px; padding: 14px 16px;
+  border: 1px solid var(--mk-line); border-radius: 10px; background: #fff; }
+.mk-tune label { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 12px; }
+.mk-tune input[type="range"] { grid-column: 1 / -1; width: 100%; }
+.mk-tune output { font-variant-numeric: tabular-nums; color: var(--mk-muted); }
+.mk-tune-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+/* What every real theme gets for free (apps/extension/src/content/theme/stylesheet.ts, BASE and the
+   guardrails), so mockup CSS behaves like the pack's and does not repeat it. */
+.ir-active-box { position: relative; isolation: isolate; }
+.ir-active-box [data-ir-card] { border-radius: 0 !important; box-shadow: none !important; background: transparent !important; border-color: transparent !important; }
+.ir-skin { position: absolute; z-index: -1; pointer-events: none; }
+.ir-active-box[data-ir-layout="window"] > .ir-skin { overflow: hidden; }
+.ir-toggle-cell { vertical-align: middle; padding: 0 10px 0 6px; white-space: nowrap; }
+.ir-toggle, .ir-refactor { cursor: pointer; white-space: nowrap; vertical-align: middle; }
+.ir-refactor:disabled { cursor: progress; }
+.ir-busy { pointer-events: none; }
+.ir-pin { position: absolute; z-index: 9; cursor: pointer; }
+.ir-note { position: absolute; z-index: 10; width: 290px; box-sizing: border-box; }
+.ir-note textarea { display: block; width: 100%; box-sizing: border-box; border: 0; outline: 0; resize: none; background: transparent; color: inherit; font: 14px/1.4 system-ui, sans-serif; }
+.ir-note-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.ir-note-delete { cursor: pointer; }
+@media (prefers-reduced-motion: reduce) {
+  .ir-active-box, .ir-active-box *, .ir-active-box *::before, .ir-active-box *::after { animation: none !important; transition: none !important; }
+}

@@ -4,5 +4,5 @@
     "lib": ["ES2022", "DOM"],
     "types": ["chrome", "node"]
   },
-  "include": ["src", "test", "preview", "vite.config.ts", "vite.preview.config.ts"]
+  "include": ["src", "test", "preview", "scripts", "vite.config.ts", "vite.preview.config.ts"]
 }

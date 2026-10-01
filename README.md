@@ -57,6 +57,7 @@ npm run build   # typecheck + build to dist/, load it unpacked in chrome://exten
 npm run dev     # rebuild on save
 npm test        # core tests and the theme contract tests
 npm run preview # theme design preview at localhost:5199 (?theme=<id>)
+npm run mockup:snapshot -- <id>   # write a theme's shipped look into docs/design/<id>/mockup.html
 ```
 
 After every build: reload the extension in `chrome://extensions`, then hard refresh Gmail (Cmd+Shift+R). The Gmail tab keeps running the old content script until refreshed.

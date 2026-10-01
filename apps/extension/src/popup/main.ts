@@ -1,4 +1,5 @@
-import { asLook, getLook, setLook } from "../look";
+import { asLook, getHeadBand, getLook, getNewMark, setHeadBand, setLook, setNewMark } from "../appearance";
+import { THEME_LIST } from "../theme-list";
 import { DEFAULT_MODEL, OPENROUTER_KEY_URL, getSettings, saveSettings } from "../settings";
 
 const form = document.querySelector<HTMLFormElement>("#form")!;
@@ -64,9 +65,25 @@ removeButton.addEventListener("click", async () => {
 
 document.querySelector("#voice")!.addEventListener("click", () => void chrome.runtime.openOptionsPage());
 
-// The look switches live in every open Gmail tab.
-const lookInputs = document.querySelectorAll<HTMLInputElement>('input[name="look"]');
+// The theme switches live in every open Gmail tab.
+const lookInputs = THEME_LIST.map((theme) => {
+  const input = Object.assign(document.createElement("input"), { type: "radio", name: "look", value: theme.id });
+  const label = document.createElement("label");
+  label.append(input, ` ${theme.name}`);
+  document.querySelector("#looks")!.append(label);
+  input.addEventListener("change", () => void setLook(asLook(input.value)));
+  return input;
+});
 void getLook().then((look) => lookInputs.forEach((input) => (input.checked = input.value === look)));
-lookInputs.forEach((input) => input.addEventListener("change", () => void setLook(asLook(input.value))));
+
+// "New" shows on the first few drafts either way; this keeps it on after that.
+const newMarkInput = document.querySelector<HTMLInputElement>("#new-mark")!;
+void getNewMark().then((mark) => (newMarkInput.checked = mark.always));
+newMarkInput.addEventListener("change", async () => void setNewMark({ ...(await getNewMark()), always: newMarkInput.checked }));
+
+// The theme's band behind the To line of replies: off by default, applies live in open Gmail tabs.
+const headBandInput = document.querySelector<HTMLInputElement>("#head-band")!;
+void getHeadBand().then((on) => (headBandInput.checked = on));
+headBandInput.addEventListener("change", () => void setHeadBand(headBandInput.checked));
 
 void render();

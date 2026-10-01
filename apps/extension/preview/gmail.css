@@ -1,0 +1,61 @@
+/* A stand in for Gmail's own reply box styles, so themes are previewed on something that looks and is
+   built like the real thing (same class names the themes target: .aoI, [data-ir-card], table.iN, .J-Z,
+   .aDj, .dC, .T-I, .aoO, .hG, data-tooltip buttons). Measured roughly from Gmail on 2026-09-29. */
+
+.pv-gmail { font: 14px/1.4 "Google Sans", Roboto, Arial, sans-serif; padding: 18px 18px 26px; border-radius: 12px; }
+.pv-gmail.pv-light { background: #f6f8fc; color: #1f1f1f; }
+.pv-gmail.pv-dark { background: #1b1b1b; color: #e3e3e3; }
+
+/* The thread above the reply (Beach reads it as the sea) */
+.pv-msg { display: flex; gap: 12px; margin: 0 0 14px; }
+.pv-msg .pv-av { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #8e6bd8; color: #fff; display: grid; place-items: center; font-weight: 600; }
+.pv-msg .pv-from { font-weight: 600; }
+.pv-msg .pv-snip { opacity: .75; }
+
+/* The reply box: avatar column plus the card */
+.aoI { display: flex; gap: 12px; align-items: flex-start; }
+.pv-avatar-col { flex: none; width: 40px; padding-top: 6px; }
+.pv-avatar-wrap { width: 40px; height: 40px; }
+.pv-avatar { display: block; width: 40px; height: 40px; border-radius: 50%; background: #1a73e8; }
+.pv-card { flex: 1; min-width: 0; border-radius: 16px; overflow: visible; }
+.pv-light .pv-card { background: #fff; box-shadow: 0 1px 2px rgba(60,64,67,.3), 0 2px 6px 2px rgba(60,64,67,.15); }
+.pv-dark .pv-card { background: #2c2c2c; box-shadow: 0 1px 3px rgba(0,0,0,.6); }
+
+.pv-head { display: flex; align-items: center; gap: 8px; padding: 10px 14px 8px; }
+.pv-head .pv-chip { padding: 2px 10px; border-radius: 12px; background: rgba(128,128,128,.14); }
+.pv-head .pv-grow { flex: 1; }
+.pv-head [role="button"] { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; opacity: .7; cursor: pointer; }
+
+table.iN { width: 100%; border-collapse: collapse; }
+table.iN td { padding: 4px 16px 10px; }
+.pv-editor { min-height: 120px; outline: none; font: 13.5px/1.35 Arial, sans-serif; }
+
+.J-Z { display: flex; align-items: center; gap: 4px; margin: 0 14px 6px; padding: 4px 8px; border-radius: 8px; }
+.pv-light .J-Z { background: #f2f2f2; }
+.pv-dark .J-Z { background: #3a3a3a; }
+.J-Z [role="button"], .J-Z [role="listbox"] { min-width: 26px; height: 26px; display: grid; place-items: center; padding: 0 4px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.J-Z .J-Z-axR { width: 1px; height: 18px; background: rgba(128,128,128,.4); }
+
+.aDj { padding: 6px 12px 12px; border-radius: 0 0 16px 16px; }
+.aDj table { border-collapse: collapse; width: 100%; }
+.aDj td { vertical-align: middle; white-space: nowrap; }
+.aDj td.pv-grow { width: 100%; }
+.dC { display: inline-flex; vertical-align: middle; }
+.dC .T-I { display: inline-flex; align-items: center; height: 36px; background: #0b57d0; color: #fff; cursor: pointer; font-weight: 500; }
+.dC .aoO { padding: 0 16px 0 22px; border-radius: 18px 0 0 18px; }
+.dC .hG { padding: 0 10px; border-radius: 0 18px 18px 0; border-left: 1px solid rgba(255,255,255,.35); }
+.pv-icons { display: inline-flex; gap: 2px; vertical-align: middle; margin-left: 8px; }
+/* Gmail's window (a new email, or a reply popped out): 600px wide, title bar, rows instead of a card */
+.pv-window { width: 600px; max-width: 100%; border-radius: 12px 12px 0 0; overflow: hidden; }
+.pv-light .pv-window { background: #fff; box-shadow: 0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12); }
+.pv-dark .pv-window { background: #2c2c2c; box-shadow: 0 8px 18px rgba(0,0,0,.6); }
+.pv-wtitle { display: flex; justify-content: space-between; padding: 10px 16px; font-weight: 500; }
+.pv-light .pv-wtitle { background: #f2f6fc; color: #041e49; }
+.pv-dark .pv-wtitle { background: #3c3c3c; color: #e3e3e3; }
+.pv-wctl { letter-spacing: 8px; opacity: .7; }
+.pv-wrow { display: flex; align-items: center; gap: 10px; margin: 0 16px; padding: 8px 0; border-bottom: 1px solid rgba(128,128,128,.3); }
+.pv-wlabel { opacity: .7; }
+.pv-winput { flex: 1; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; }
+.pv-window .pv-editor { min-height: 170px; }
+.pv-window .aoI { display: block; }
+.pv-icons [role="button"], .pv-discard [role="button"] { width: 32px; height: 32px; display: inline-grid; place-items: center; border-radius: 50%; cursor: pointer; font-size: 15px; opacity: .8; }

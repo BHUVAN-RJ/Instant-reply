@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Theme preview</title>
+    <link rel="stylesheet" href="./gmail.css" />
+    <link rel="stylesheet" href="./preview.css" />
+  </head>
+  <body>
+    <header class="pv-bar">
+      <h1>Theme preview</h1>
+      <label>Theme <select id="theme"></select></label>
+      <label>Variant <select id="variant"></select></label>
+      <label><input type="checkbox" id="show-new" checked /> "New" mark</label>
+      <label><input type="checkbox" id="head-band" /> To line band</label>
+      <label>Thinking <select id="thinking"><option value="1500">1.5s</option><option value="4000" selected>4s</option><option value="10000">10s</option></select></label>
+      <span class="pv-note" id="design-path"></span>
+    </header>
+    <main id="app"></main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

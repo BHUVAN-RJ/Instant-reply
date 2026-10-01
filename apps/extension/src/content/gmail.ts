@@ -1,17 +1,18 @@
 import type { Thread, ThreadSession } from "@instant-reply/core";
 import { SESSION_PREFIX, createChromeStore } from "../adapters/chrome-store";
 import type { DraftResponse, Message } from "../messages";
-import { LOOK_KEY, asLook, getLook, type Look } from "../look";
-import { beachSweep } from "./beach/fx";
-import { PALETTES, californiaPalette, type PaletteId } from "./beach/palette";
-import { buildBeachStyles } from "./beach/styles";
+import { HEAD_BAND_KEY, LOOK_KEY, asLook, countShown, getHeadBand, getLook, getNewMark, setNewMark, showsNew } from "../appearance";
 import { clearComments, commentCount, initComments, syncComments, takeComments } from "./comments";
 import { readBox, readSignature, writeBox } from "./editor";
 import { noteSeen } from "../identity";
-import { stamp, sweep } from "./fx";
-import { tagIcons } from "./icons";
-import { ACTIVE_BOX_CLASS, BUSY_EDITOR_CLASS, REFACTOR_CLASS, SKIN_CLASS, TOGGLE_CLASS, buildStyles } from "./styles";
 import { renderedText } from "./text";
+import type { SwooshContext, ThemePack } from "./theme/contract";
+import { tagIcons } from "./theme/icons";
+import { playSwoosh, startThinking } from "./theme/run";
+import { ACTIVE_BOX_CLASS, BUSY_EDITOR_CLASS, REFACTOR_CLASS, SKIN_CLASS, TOGGLE_CLASS } from "./theme/shared";
+import { boxLayout, ensureSkin, layoutSkin, setIfChanged, themeOf } from "./theme/layout";
+import { buildStylesheet } from "./theme/stylesheet";
+import { THEMES, themeById } from "./themes";
 import { readMessages } from "./thread";
 
 // Runs inside Gmail:
@@ -20,29 +21,34 @@ import { readMessages } from "./thread";
 // - While a thread is on, its reply boxes are dressed in the chosen look and get a Refactor button next
 //   to Send. Refactor sends the box and the whole thread to the agent and animates the draft into the
 //   box. Nothing is ever sent by the extension.
-// - Two looks, picked in the toolbar popup: FragPunk (styles.ts, fx.ts: glitch sweep and a New! sticker)
-//   and Beach (beach/: a wave over sand, palettes by California time).
+// - How it looks is up to the theme pack picked in the toolbar popup (themes/, contract in
+//   theme/contract.ts, guide in docs/THEMES.md). This file never names a theme.
 // - When a thread that is on gets sent, the sent text goes to the agent, which compares it with its
 //   last draft to learn the user's voice (core/learn.ts).
 // Still to do: compose windows (new emails).
 
-let look: Look = "fragpunk";
-/** "Refactor!" (FragPunk) or "Refactor" (Beach), with the number of comments waiting in the box. */
+let theme: ThemePack = THEMES[0];
+/** Whether inline replies wear the theme's To line band (popup, off by default). */
+let headBand = false;
+void getHeadBand().then((on) => {
+  headBand = on;
+  scheduleSync();
+});
+/** The theme's Refactor label, with the number of comments waiting in the box. */
 function refactorLabel(box?: HTMLElement | null): string {
-  const base = look === "beach" ? "Refactor" : "Refactor!";
+  const base = theme.labels.refactor;
   const count = box ? commentCount(box) : 0;
   return count ? `${base} (${count})` : base;
 }
 
 const styleEl = document.createElement("style");
 
-/** Swaps the stylesheet and drops everything drawn in the old look; the next sync redraws it. */
-function applyLook(next: Look): void {
-  look = next;
-  styleEl.textContent =
-    look === "beach"
-      ? buildBeachStyles({ fredoka: chrome.runtime.getURL("fonts/fredoka-600.woff2"), pacifico: chrome.runtime.getURL("fonts/pacifico.woff2") })
-      : buildStyles(chrome.runtime.getURL("fonts/permanent-marker.woff2"));
+/** Swaps the stylesheet and drops everything drawn by the old theme; the next sync redraws it. */
+function applyLook(id: string): void {
+  const previous = theme;
+  theme = themeById(id);
+  styleEl.textContent = buildStylesheet(theme, (file) => chrome.runtime.getURL(`fonts/${file}`));
+  document.querySelectorAll<HTMLElement>(`.${ACTIVE_BOX_CLASS}`).forEach((box) => previous.ornament.clear(box));
   document.querySelectorAll(`.${SKIN_CLASS}`).forEach((el) => el.remove());
   document.querySelectorAll<HTMLButtonElement>(`.${REFACTOR_CLASS}:not(:disabled)`).forEach((b) => (b.textContent = refactorLabel(b.closest<HTMLElement>(".ir-active-box"))));
   scheduleSync();
@@ -53,12 +59,22 @@ function injectStyles(): void {
   void getLook().then(applyLook);
 }
 
-/** The beach palette follows California time; it is held still while a wave runs in that box. */
-function paintPalette(box: HTMLElement, palette: PaletteId): void {
-  if (box.dataset.irPal !== palette) box.dataset.irPal = palette;
+/** The theme's variant right now, worked out at most once a minute. */
+let variantCache = { theme: "", minute: -1, variant: "" };
+function currentVariant(): string {
+  const minute = Math.floor(Date.now() / 60000);
+  if (variantCache.theme !== theme.meta.id || variantCache.minute !== minute) {
+    variantCache = { theme: theme.meta.id, minute, variant: theme.pickVariant(new Date()) };
+  }
+  return variantCache.variant;
+}
+
+/** Marks the box and its avatar with the variant; held still while a Refactor runs in that box. */
+function paintVariant(box: HTMLElement, variant: string): void {
+  if (box.dataset.irVariant !== variant) box.dataset.irVariant = variant;
   const avatar = document.querySelector<HTMLElement>(`[data-ir-avatar="${box.dataset.composeId}"]`);
   for (const el of [avatar, avatar?.parentElement?.hasAttribute("data-ir-avatar-wrap") ? avatar.parentElement : null]) {
-    if (el && el.dataset.irPal !== palette) el.dataset.irPal = palette;
+    if (el && el.dataset.irVariant !== variant) el.dataset.irVariant = variant;
   }
 }
 
@@ -80,6 +96,7 @@ async function isThreadActive(threadId: string): Promise<boolean> {
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
   if (LOOK_KEY in changes) applyLook(asLook(changes[LOOK_KEY].newValue));
+  if (HEAD_BAND_KEY in changes) headBand = changes[HEAD_BAND_KEY].newValue === true;
   for (const [key, change] of Object.entries(changes)) {
     if (!key.startsWith(SESSION_PREFIX)) continue;
     const session = change.newValue as ThreadSession | undefined;
@@ -134,7 +151,11 @@ function createToggle(threadId: string, active: boolean): HTMLButtonElement {
 
 // --- Reply boxes ----------------------------------------------------------------
 
-/** Reply boxes carry their thread in a hidden "rt" input ("#thread-f:<id>"); empty for new emails. */
+/**
+ * Reply boxes carry their thread in a hidden "rt" input ("#thread-f:<id>"), popped out or not. New emails
+ * (compose) carry a draft id there instead ("#thread-a:r-<id>"), so they are treated as a thread of their
+ * own for now (checked 2026-09-30; see docs/PLAN.md, compose windows).
+ */
 function replyThreadId(box: HTMLElement): string | null {
   const rt = box.querySelector<HTMLInputElement>('input[name="rt"]')?.value;
   return rt ? rt.replace(/^#/, "") : null;
@@ -183,25 +204,25 @@ async function refactor(box: HTMLElement, button: HTMLButtonElement): Promise<vo
   const boxText = readBox(editor);
   if (!boxText) return flash(button, "Type something first");
 
+  // The theme and its variant are read when Refactor is pressed and held until the swoosh ends.
+  const pack = theme;
+  const variant = currentVariant();
   button.disabled = true;
-  button.textContent = "Refactoring";
+  button.textContent = pack.labels.working;
+  const mark = await getNewMark();
+  const ctx: SwooshContext = { host: box, editor, variant, showNew: showsNew(mark) };
   editor.classList.add(BUSY_EDITOR_CLASS);
-  // The palette is read when Refactor is pressed and held for the whole wave.
-  const palette = californiaPalette();
-  box.dataset.irPalLock = "";
-  paintPalette(box, palette);
+  box.dataset.irVariantLock = "";
+  paintVariant(box, variant);
+  const stopThinking = startThinking(pack, ctx);
   try {
     const message: Message = { type: "draft", request: { thread: await collectThread(box, threadId, editor), boxText, comments: takeComments(box) } };
     const response: DraftResponse = await chrome.runtime.sendMessage(message);
+    stopThinking();
     editor.classList.remove(BUSY_EDITOR_CLASS);
     if (response.ok) {
-      const write = () => writeBox(editor, response.draft);
-      if (look === "beach") {
-        await beachSweep(box, editor, write, PALETTES[palette]);
-      } else {
-        await sweep(box, editor, write);
-        stamp(box, editor);
-      }
+      await playSwoosh(pack, ctx, () => writeBox(editor, response.draft));
+      if (ctx.showNew && !mark.always) void getNewMark().then((m) => setNewMark(countShown(m)));
       clearComments(box);
       button.textContent = refactorLabel(box);
     } else if (response.error === "no-key") {
@@ -215,9 +236,10 @@ async function refactor(box: HTMLElement, button: HTMLButtonElement): Promise<vo
     console.error("[instant-reply]", error);
     flash(button, "Failed, see console", 4000);
   } finally {
+    stopThinking();
     editor.classList.remove(BUSY_EDITOR_CLASS);
     button.disabled = false;
-    delete box.dataset.irPalLock;
+    delete box.dataset.irVariantLock;
   }
 }
 
@@ -256,17 +278,6 @@ function hookSend(box: HTMLElement, threadId: string, editor: HTMLElement): void
   }, true);
 }
 
-function createSkin(): HTMLElement {
-  const skin = document.createElement("div");
-  skin.className = SKIN_CLASS;
-  skin.setAttribute("aria-hidden", "true");
-  skin.innerHTML =
-    look === "beach"
-      ? '<i class="ir-card"></i><i class="ir-lagoon"></i><i class="ir-foam"></i>'
-      : '<i class="ir-sh"></i><i class="ir-under"></i><i class="ir-ink"></i><i class="ir-paper"></i><b class="ir-bar-acid"></b><b class="ir-bar-sh"></b><b class="ir-bar"></b>';
-  return skin;
-}
-
 /**
  * The visible reply card: the outermost rounded element around the editor. The box itself is wider
  * (it holds the avatar column), so the skin is sized to the card. Marked once, because the styles then
@@ -283,64 +294,20 @@ function replyCard(box: HTMLElement, editor: HTMLElement): HTMLElement {
   return card ?? box;
 }
 
-/** Light or dark, from the card's own background, so the ink edge and icons stay visible. */
-function themeOf(el: HTMLElement): { theme: "light" | "dark"; paper: string } {
-  const bg = getComputedStyle(el).backgroundColor;
-  const [r = 255, g = 255, b = 255, a = 1] = (bg.match(/[\d.]+/g) ?? []).map(Number);
-  if (a === 0) return { theme: "light", paper: "#fff" };
-  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  return { theme: luminance < 0.4 ? "dark" : "light", paper: bg };
-}
-
-function setIfChanged(el: HTMLElement, prop: string, value: string): void {
-  if (el.style.getPropertyValue(prop) !== value) el.style.setProperty(prop, value);
-}
-
 /**
  * Adds the border skin around the reply card, lays the crooked ink bar behind the recipients line
  * (everything in the card above the body table), and retags the toolbar icons. Writes only on change.
  */
 function dressBox(box: HTMLElement, editor: HTMLElement): void {
-  let skin = box.querySelector<HTMLElement>(`:scope > .${SKIN_CLASS}`);
-  if (!skin) box.prepend((skin = createSkin()));
+  const skin = ensureSkin(box, theme.skin);
   const card = replyCard(box, editor);
   watchSize(card);
-  const b = box.getBoundingClientRect(), c = card.getBoundingClientRect();
-  setIfChanged(skin, "left", `${c.left - b.left}px`);
-  setIfChanged(skin, "top", `${c.top - b.top}px`);
-  setIfChanged(skin, "width", `${c.width}px`);
-  setIfChanged(skin, "height", `${c.height}px`);
-
-  const body = card.querySelector<HTMLElement>("table.iN");
-  const bodyTop = body?.getBoundingClientRect().top ?? c.top;
-  setIfChanged(skin, "--ir-head", `${Math.max(0, bodyTop - c.top)}px`);
-  for (const child of card.children) {
-    if (!(child instanceof HTMLElement) || child === body) continue;
-    const isHead = child.getBoundingClientRect().bottom <= bodyTop + 1;
-    if (isHead !== child.hasAttribute("data-ir-head")) child.toggleAttribute("data-ir-head", isHead);
-  }
+  layoutSkin(box, card, skin);
   tagIcons(box);
   syncComments(box);
-  markAvatar(card, box.dataset.composeId ?? "");
-  placeCrown(box);
-}
-
-/**
- * The beach flower crown: its own element in the box, placed from the avatar's real position, since the
- * avatar's wrappers differ in size and offset (and some clip). Removed in any other look.
- */
-function placeCrown(box: HTMLElement): void {
-  const avatar = document.querySelector<HTMLElement>(`[data-ir-avatar="${box.dataset.composeId}"]`);
-  let crown = box.querySelector<HTMLElement>(":scope > .ir-crown");
-  if (look !== "beach" || !avatar) return crown?.remove();
-  if (!crown) {
-    crown = Object.assign(document.createElement("i"), { className: "ir-crown" });
-    crown.setAttribute("aria-hidden", "true");
-    box.append(crown);
-  }
-  const a = avatar.getBoundingClientRect(), b = box.getBoundingClientRect();
-  setIfChanged(crown, "left", `${Math.round(a.left - b.left + a.width / 2 - 32)}px`);
-  setIfChanged(crown, "top", `${Math.round(a.top - b.top - 17)}px`);
+  // A window has no avatar beside it; probing to its left would find something in the inbox list.
+  if (box.dataset.irLayout !== "window") markAvatar(card, box.dataset.composeId ?? "");
+  theme.ornament.place(box, document.querySelector<HTMLElement>(`[data-ir-avatar="${box.dataset.composeId}"]`));
 }
 
 /**
@@ -394,6 +361,11 @@ async function syncReplyBoxes(): Promise<void> {
     const sendGroup = box.querySelector<HTMLElement>(".dC");
     if (!threadId || !editor || !sendGroup) continue;
     const active = await isThreadActive(threadId);
+    const layout = boxLayout(box);
+    if (box.dataset.irLayout !== layout) box.dataset.irLayout = layout;
+    // A card's To line wears the band if the user turned it on; otherwise, and always in a window, a rule.
+    const headStyle = layout === "card" && headBand ? "band" : "rule";
+    if (box.dataset.irHeadStyle !== headStyle) box.dataset.irHeadStyle = headStyle;
 
     // Read the theme while the card still shows its own background; once dressed it is transparent.
     if (!active || !box.dataset.irTheme) {
@@ -406,14 +378,14 @@ async function syncReplyBoxes(): Promise<void> {
     if (!toggle) toggle = createToggle(threadId, active);
     else if (toggle.dataset.active !== String(active)) renderToggle(toggle, threadId, active);
     placeToggle(box, toggle, sendGroup, active);
-    if (look === "beach" && !("irPalLock" in box.dataset)) paintPalette(box, californiaPalette());
+    if (!("irVariantLock" in box.dataset)) paintVariant(box, currentVariant());
 
     box.classList.toggle(ACTIVE_BOX_CLASS, active);
     const existing = box.querySelector(`.${REFACTOR_CLASS}`);
     if (!active) {
       existing?.remove();
       box.querySelector(`:scope > .${SKIN_CLASS}`)?.remove();
-      box.querySelector(":scope > .ir-crown")?.remove();
+      theme.ornament.clear(box);
       clearComments(box);
       unmarkAvatar(box);
       continue;

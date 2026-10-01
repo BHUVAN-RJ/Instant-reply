@@ -1,8 +1,10 @@
+import { ghostOf, place, unionIn } from "../../theme/shared";
 import { ACID, CYAN, INK, MAG } from "./palette";
 
-// The Refactor animation. When the draft arrives an ink block of thin glitch rows sweeps the editor left
-// to right: the draft is already written underneath, and a snapshot of the old text is torn away row by
-// row behind the block's jittering front. Then a "New!" sticker slams on and peels off like a poster.
+// The FragPunk swoosh. During: when the draft arrives an ink block of thin glitch rows sweeps the editor
+// left to right; the draft is already written underneath, and a snapshot of the old text is torn away row
+// by row behind the block's jittering front. After: the box shakes on impact and, with the New mark, a
+// "New!" sticker slams on and peels off like a poster.
 
 const SWEEP_MS = 600;
 const TRAIL = 520;
@@ -20,8 +22,6 @@ const ECHOES: [dx: number, alpha: number, tint: string][] = [
 const ROW_COLORS = [ACID, MAG, INK, ACID, CYAN, MAG, ACID, INK, MAG, ACID, CYAN];
 const LIGHT = [ACID, MAG, CYAN, ACID, MAG];
 
-export const reducedMotion = (): boolean => matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
@@ -30,42 +30,6 @@ interface Row {
   delay: number;
   tail: number;
   color: string;
-}
-
-interface Box {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
-
-/** A rect relative to `host`, covering both of the given viewport rects. */
-function unionIn(host: HTMLElement, a: DOMRect, b: DOMRect): Box {
-  const h = host.getBoundingClientRect();
-  const left = Math.min(a.left, b.left), top = Math.min(a.top, b.top);
-  return {
-    left: left - h.left,
-    top: top - h.top,
-    width: Math.max(a.right, b.right) - left,
-    height: Math.max(a.bottom, b.bottom) - top,
-  };
-}
-
-function place(el: HTMLElement, r: Box): void {
-  Object.assign(el.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
-}
-
-/** A still copy of the editor's current text, styled like the editor, to tear away. */
-function ghostOf(editor: HTMLElement): HTMLElement {
-  const cs = getComputedStyle(editor);
-  const ghost = document.createElement("div");
-  ghost.className = "ir-ghost";
-  ghost.setAttribute("aria-hidden", "true");
-  for (const prop of ["font", "lineHeight", "color", "padding", "direction", "textAlign", "letterSpacing", "wordSpacing"] as const) {
-    ghost.style[prop] = cs[prop];
-  }
-  ghost.innerHTML = editor.innerHTML;
-  return ghost;
 }
 
 function drawRows(ctx: CanvasRenderingContext2D, xs: number[], rows: Row[], h: number, dx: number, alpha: number, tint?: string): void {
@@ -113,9 +77,8 @@ function drawFrame(ctx: CanvasRenderingContext2D, xs: number[], rows: Row[], h: 
  * the overlay lives inside it so it scrolls with the thread.
  */
 export async function sweep(host: HTMLElement, editor: HTMLElement, write: () => void): Promise<void> {
-  if (reducedMotion()) return write();
   const before = editor.getBoundingClientRect();
-  const ghost = ghostOf(editor);
+  const ghost = ghostOf(editor, "ir-ghost");
   write();
   const area = unionIn(host, before, editor.getBoundingClientRect());
 
@@ -158,9 +121,16 @@ export async function sweep(host: HTMLElement, editor: HTMLElement, write: () =>
   canvas.remove();
 }
 
-/** The New! sticker: slams onto the top right of the editor, shakes the box, then peels off and drops. */
+/** The box jolts, as if the sweep hit its edge. */
+export function shake(host: HTMLElement): void {
+  host.classList.remove("ir-shake");
+  void host.offsetWidth;
+  host.classList.add("ir-shake");
+  setTimeout(() => host.classList.remove("ir-shake"), 300);
+}
+
+/** The New! sticker: slams onto the top right of the editor, then peels off and drops. */
 export function stamp(host: HTMLElement, editor: HTMLElement): void {
-  if (reducedMotion()) return;
   const h = host.getBoundingClientRect(), e = editor.getBoundingClientRect();
   const sticker = document.createElement("div");
   sticker.className = "ir-stamp";
@@ -173,10 +143,4 @@ export function stamp(host: HTMLElement, editor: HTMLElement): void {
   sheet.addEventListener("animationend", (event) => {
     if ((event as AnimationEvent).animationName === "ir-poster") sticker.remove();
   });
-  setTimeout(() => {
-    host.classList.remove("ir-shake");
-    void host.offsetWidth;
-    host.classList.add("ir-shake");
-    setTimeout(() => host.classList.remove("ir-shake"), 300);
-  }, 200);
 }

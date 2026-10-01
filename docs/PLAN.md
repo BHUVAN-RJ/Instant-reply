@@ -1,6 +1,6 @@
 # Instant Reply: status and plan
 
-Last updated 2026-09-29 (branch `beach-style`: both looks checked live in Gmail and polished, threads start on, name and signature, writing rules, inline comments; not merged into main yet).
+Last updated 2026-09-30 (branch `theme-packs`, on top of `beach-style`: looks moved into theme packs behind a strict contract, design language and preview for designers, compose window layout, optional To line band; both themes approved; not merged into main yet).
 
 ## Product decisions (agreed)
 
@@ -13,6 +13,12 @@ Last updated 2026-09-29 (branch `beach-style`: both looks checked live in Gmail 
 - The agent always gets the whole thread, the thread's own history, and the whole box (an instruction, or a previous draft with edits and change requests).
 - Voice: no profile up front. Learned from revision requests and from hand edits made before sending. The settings page shows it read only; changes happen by chatting with the agent, which rewrites the notes as a whole (avoids drift).
 - Architecture is plug and play: pure core with ports, Chrome host with adapters, other apps connect as plugins.
+- Two theses: getting all the information (core and the Gmail reader) and making it look pretty (theme packs). They stay apart: `gmail.ts` never names a theme.
+- Theme packs (2026-09-29): every look is a pack in `content/themes/<id>/` following `content/theme/contract.ts`. Every slot is required (a slot left to Gmail says so with `plain("why")`): tokens, card, To line, body, formatting bar, pinned Send row, switch, Refactor, Send, toolbar icons, Discard, avatar, caret, cursor, selection, comments, swoosh layers. The swoosh has three phases: before (while the model thinks), during (old text visibly goes, draft arrives, any motion), after (settle and the "New" mark). Variants belong to the pack and all follow its design.
+- Design first: each pack has a `DESIGN.md` (template in `docs/themes/DESIGN_TEMPLATE.md`) covering every slot, phase and variant, approved by the user before code (`Status: approved <date>`, never set by an agent). Tests enforce the contract and the design coverage. Guide: `docs/THEMES.md`.
+- "New" mark: shows on the first three Refactors so the flow is clear, then only if "Show New on every draft" is on in the popup.
+- To line band (2026-09-30): the band behind the To line of inline replies (FragPunk's ink bar, Beach's lagoon water) was too much, so it is off by default and turned on with "Decorate the To line of replies" in the popup. Off (the default), the To line is plain Gmail with a rule between it and the body (FragPunk's crooked ink strip, Beach's foam line), the same rule new emails and popped out replies always show under Subject. Two To line styles on the box (`data-ir-head-style` band or rule); themes style both in the head slot under `BAND` and `RULE` (tested). FragPunk's torn right edge now tears by a few pixels at any width instead of a percentage, which on a wide card looked like a broken 10px step.
+- Popup and settings page stay neutral (not themed).
 
 ## Done
 
@@ -43,6 +49,8 @@ Last updated 2026-09-29 (branch `beach-style`: both looks checked live in Gmail 
   - Code: `content/beach/` holds the palettes and California time rule (`palette.ts`), the stylesheet (`styles.ts`, colours per palette on `data-ir-pal`, shapes as inline SVG backgrounds), the wave (`fx.ts`, layers over the writing area: sand, the new text, the old text, the water) and the finds (`finds.ts`). Fredoka and Pacifico are bundled in `public/fonts` (Open Font License).
   - A friend's copy uses their own OpenRouter key, and their learning stays on their computer, separate from the user's.
 - Plugin registry at `apps/extension/src/plugins/index.ts` (empty).
+- Theme packs (built 2026-09-29, branch `theme-packs`, not yet checked live): contract, shared helpers, stylesheet builder with shared layout and a reduced motion guardrail written last, and a swoosh runner that skips motion under reduced motion and always writes the draft exactly once. FragPunk and Beach moved into packs with a DESIGN.md each. New in both: three still cursors over the reply box (arrow, hand over anything clickable, text cursor), designed as one family with the buttons, and a themed selection (Beach uses a strong per palette select colour; its first pale yellow barely showed on white). Every theme must design all three cursors (tested). Beach's before phase is now small waves lapping at the top of the writing area (was a bob); FragPunk's after shakes the box on every Refactor. Without the "New" mark, Beach leaves plain finds and FragPunk skips the sticker. Contract tests in `apps/extension/test/themes.test.ts`. Content script went from 72.2 kB to 77.1 kB (26.7 kB gzip).
+- Design language and preview (2026-09-30): `docs/themes/DESIGN_LANGUAGE.md` gives designers and agents the canvas (Gmail's reply box anatomy, what can be restyled or only overlaid), colour roles (edge, accent, strong, onStrong; checked for 3:1 contrast on white and dark through `roles()`), shape and motion language, the states every element needs, cursors, the swoosh budget, variants, a design process and mistakes already made. `npm run preview` opens a page that runs every theme's real code on a stand in for Gmail's reply box: light and dark, every variant, every state forced side by side, cursors, colour roles with contrast, comments, and Refactor end to end with a fake model. Skin layout moved to `content/theme/layout.ts` so Gmail and the preview share it.
 - Voice learning (core `learn.ts`, tested):
   - Signals: a revision request is recorded when Refactor is pressed on a box that differs from the last draft; a sent diff is recorded when a thread that is on is sent (Send pressed or Cmd/Ctrl+Enter, read on pointer down before Gmail clears the box) and the text differs from the last draft. Each draft counts once. Sends without a draft are ignored.
   - Every 3 waiting signals (up to 20 per run) the model rewrites the notes as a whole. The first run also mines older thread histories for revision requests, so drafts made before learning existed count.
@@ -58,13 +66,17 @@ Last updated 2026-09-29 (branch `beach-style`: both looks checked live in Gmail 
 
 ## Next
 
-1. **Check learning live.** Confirm the Send hook fires on the real Send button and Cmd+Enter, and that notes read well after a few emails.
-2. **Beach style, finish the live check.** Confirm the avatar crown placement and the wave over real drafts of different lengths, then merge `beach-style` into main.
-3. **Compose windows (new emails).** Switch in the compose footer, session keyed by draft id (`input[name="draft"]`), move history to the thread id after sending if possible.
-4. **Job app connection.** Decide transport once the job app's stack is known: local bridge service, `externally_connectable` messages, native messaging, or importing `@instant-reply/core` directly. Then implement a `ContextProvider` (role, application status for recruiter threads) and an `EventSink` (update status on replies).
-5. **Polish.** Keyboard shortcut for Refactor (Cmd+Shift+Enter), optional re-collapse after Expand all, extension icon, error messages surfaced in the UI instead of the console, localized Expand all label.
+1. **Check the themes live, then merge.** Both DESIGN.md files approved 2026-09-30 and the full test suite passes. Still to see in real Gmail: Beach's thinking waves and the New mark on the first three Refactors then off, and the latest window and To line rule changes in both themes. Then merge `theme-packs`. Next up: a third theme designed by a fresh agent from only the docs (`docs/THEMES.md`, `docs/themes/DESIGN_LANGUAGE.md`, the template, the preview), to test that the docs are enough.
+2. **Check learning live.** Confirm the Send hook fires on the real Send button and Cmd+Enter, and that notes read well after a few emails.
+3. **Beach style, finish the live check.** Confirm the avatar crown placement and the wave over real drafts of different lengths, then merge `beach-style` into main.
+4. **Compose windows and popped out replies.** Both use the same `div.aoI[data-compose-id]` box as an inline reply, inside Gmail's 600px window (checked 2026-09-30). The first live try in a new email broke the look: the card skin wrapped the whole window and spilled into a scrollbar, the To and Subject fields were painted dark (white input, grey labels), and the full size switch pushed six toolbar icons into Gmail's overflow menu. Built 2026-09-30: a `window` layout (`data-ir-layout="window"` on boxes inside a dialog, `CARD` and `WINDOW` selectors), a required `window` CSS slot designed in both DESIGN.md files (drawn only inside the window, To and Subject left on paper and underlined, compact switch and Refactor, room above the body), the skin clipped to the box, no avatar probing in a window, light or dark read from the first real background up the tree, compose and popped out mocks in the preview, layout tests (happy-dom) and contract tests. Still to do: check it live in Gmail after reloading the extension; a new email's history is keyed by its draft id (`#thread-a:r-<id>`) and is not moved to the real thread after sending.
+5. **Job app connection.** Decide transport once the job app's stack is known: local bridge service, `externally_connectable` messages, native messaging, or importing `@instant-reply/core` directly. Then implement a `ContextProvider` (role, application status for recruiter threads) and an `EventSink` (update status on replies).
+6. **Neutral popup and settings page.** Make both cleaner while staying neutral (not themed).
+7. **Polish.** Keyboard shortcut for Refactor (Cmd+Shift+Enter), optional re-collapse after Expand all, extension icon, error messages surfaced in the UI instead of the console, localized Expand all label.
 
 ## Open questions
+
+- Seen live 2026-09-30: in a new email with no thread and a vague instruction, the agent wrote a message to the user into the email ("I can't draft anything from that. Tell me who the email is going to..."). The draft should never talk to the user; it needs a way to say "not enough to go on" outside the box (a flash on the Refactor button), and the prompt needs a compose case.
 
 
 - Beach look, likely adjustments after the live check: the 12px gap added above the body under the foam line is a guess; Gmail's Send button height may squash the pebble; the avatar flower crown only shows when the avatar sits alone in its container.

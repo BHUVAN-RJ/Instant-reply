@@ -1,10 +1,12 @@
+import { ghostOf, sizeCanvas, unionIn, type Area } from "../../theme/shared";
 import type { Palette } from "./palette";
 import { drawFind, drawNewMark, type Find, type FindKind } from "./finds";
 
 // The beach Refactor animation. Seen from above: the thread above the box is the sea. Sand fades into
 // the writing area, one wave runs down over it and washes the old text away, then pulls back up and
-// leaves the new draft on wet sand, along with a few beach finds (one of them carries the word "New").
-// The sand dries, everything fades, and the real editor, already holding the draft, is all that is left.
+// leaves the new draft on wet sand, along with a few beach finds (with the New mark, one of them carries
+// the word "New"). That is the swoosh's "during". Its "after" is the settle: the sand dries, critters
+// wander off, everything fades, and the real editor, already holding the draft, is all that is left.
 //
 // The waterline is uneven: the area is split into thin columns and each gets its own arrival time,
 // reach and retreat time, shaped by one of six presets picked at random, never the same twice in a row.
@@ -56,8 +58,6 @@ const easeBack = (t: number) => { const c = 1.9; return 1 + (c + 1) * Math.pow(t
 const hexA = (hex: string, a: number) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
 const n3 = (u: number, s: number[], f: number[]) => 0.5 + 0.5 * (Math.sin(u * f[0] + s[0]) * 0.55 + Math.sin(u * f[1] + s[1]) * 0.3 + Math.sin(u * f[2] + s[2]) * 0.15);
 const bell = (u: number, c: number, w: number) => Math.exp(-Math.pow((u - c) / w, 2));
-
-export const reducedMotion = (): boolean => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // ----- the shape of the wave -----
 
@@ -144,11 +144,14 @@ function fits(x: number, y: number, rad: number, W: number, H: number, rects: Re
   return !placed.some((p) => Math.hypot(p.x - x, p.y - y) < p.rad + rad + FIND_GAP);
 }
 
-/** The "New" carrier goes first and biggest, shrinking only when the draft leaves no room; then 1 to 3 more finds. */
-function scatter(W: number, H: number, rects: Rect[]): Find[] {
+/**
+ * With the New mark, the "New" carrier goes first and biggest, shrinking only when the draft leaves no
+ * room; then 1 to 3 more finds. Without it, 2 to 4 plain finds.
+ */
+function scatter(W: number, H: number, rects: Rect[], withNew: boolean): Find[] {
   const placed: Find[] = [];
-  const carrier = NEW_CARRIERS[(Math.random() * NEW_CARRIERS.length) | 0];
-  for (const scale of [1, 0.85, 0.7, 0.55]) {
+  const carrier = withNew ? NEW_CARRIERS[(Math.random() * NEW_CARRIERS.length) | 0] : null;
+  if (carrier) for (const scale of [1, 0.85, 0.7, 0.55]) {
     const r = NEW_SIZE * scale, rad = r * (NEW_SPAN[carrier] ?? 1.2);
     let done = false;
     for (let tries = 0; tries < 500 && !done; tries++) {
@@ -159,7 +162,7 @@ function scatter(W: number, H: number, rects: Rect[]): Find[] {
     }
     if (done) break;
   }
-  const want = Math.max(0, FINDS_MIN + ((Math.random() * (FINDS_MAX - FINDS_MIN + 1)) | 0) - 1);
+  const want = Math.max(0, FINDS_MIN + ((Math.random() * (FINDS_MAX - FINDS_MIN + 1)) | 0) - (carrier ? 1 : 0));
   const kinds = POOL.filter((k) => k !== carrier).sort(() => Math.random() - 0.5).slice(0, want);
   for (const kind of kinds) {
     const r = rand(...FIND_SIZE), rad = r * (SPAN[kind] ?? 1.2);
@@ -294,25 +297,6 @@ function drawWater(ctx: Ctx, W: number, st: State, pal: Palette, now: number): v
 
 // ----- the run -----
 
-interface Area { left: number; top: number; width: number; height: number }
-
-function unionIn(host: HTMLElement, a: DOMRect, b: DOMRect): Area {
-  const h = host.getBoundingClientRect();
-  const left = Math.min(a.left, b.left), top = Math.min(a.top, b.top);
-  return { left: left - h.left, top: top - h.top, width: Math.max(a.right, b.right) - left, height: Math.max(a.bottom, b.bottom) - top };
-}
-
-/** A still copy of the editor's text, styled like the editor, laid over the sand. */
-function ghostOf(editor: HTMLElement): HTMLElement {
-  const cs = getComputedStyle(editor);
-  const ghost = document.createElement("div");
-  ghost.className = "ir-beach-layer ir-beach-text";
-  ghost.setAttribute("aria-hidden", "true");
-  for (const prop of ["font", "lineHeight", "color", "padding", "direction", "textAlign", "letterSpacing", "wordSpacing"] as const) ghost.style[prop] = cs[prop];
-  ghost.innerHTML = editor.innerHTML;
-  return ghost;
-}
-
 function layer(tag: "canvas" | "div", className: string, area: Area): HTMLElement {
   const el = document.createElement(tag);
   el.className = `ir-beach-layer ${className}`;
@@ -321,29 +305,29 @@ function layer(tag: "canvas" | "div", className: string, area: Area): HTMLElemen
   return el;
 }
 
-function sizeCanvas(c: HTMLCanvasElement, W: number, H: number): Ctx {
-  const d = devicePixelRatio || 1;
-  c.width = Math.round(W * d); c.height = Math.round(H * d);
-  const ctx = c.getContext("2d")!;
-  ctx.setTransform(d, 0, 0, d, 0, 0);
-  return ctx;
+const polyPts = (xs: number[], ys: number[]) => xs.map((x, i) => `${x}px ${ys[i]}px`).join(",");
+
+/** A wave that has washed in, ready to settle. */
+export interface WaveRun {
+  /** Starts the settle: hold on wet sand, dry, fade out, clean up. */
+  settle(): void;
 }
 
-const polyPts = (xs: number[], ys: number[]) => xs.map((x, i) => `${x}px ${ys[i]}px`).join(",");
+/** If `settle` is never called, the wave settles on its own after this long. */
+const SETTLE_FALLBACK_MS = 8000;
 
 /**
  * Runs `write` (which puts the draft into the editor) under the wave. `host` must be positioned; the
  * layers live inside it so they scroll with the thread. Resolves when the wave has pulled back and the
- * draft is readable; the sand keeps drying and fading on its own afterwards.
+ * draft is readable; the sand then waits for `settle` to dry and fade.
  */
-export async function beachSweep(host: HTMLElement, editor: HTMLElement, write: () => void, pal: Palette): Promise<void> {
-  if (reducedMotion()) return write();
+export async function washIn(host: HTMLElement, editor: HTMLElement, write: () => void, pal: Palette, withNew: boolean): Promise<WaveRun> {
   await Promise.race([document.fonts.load('20px "IR Pacifico"'), new Promise((r) => setTimeout(r, 300))]).catch(() => {});
   const before = editor.getBoundingClientRect();
-  const oldText = ghostOf(editor);
+  const oldText = ghostOf(editor, "ir-beach-layer ir-beach-text");
   write();
   const area = unionIn(host, before, editor.getBoundingClientRect());
-  const newText = ghostOf(editor);
+  const newText = ghostOf(editor, "ir-beach-layer ir-beach-text");
   const sand = layer("canvas", "ir-beach-sand", area) as HTMLCanvasElement;
   const water = layer("canvas", "ir-beach-water", area) as HTMLCanvasElement;
   for (const [el, z] of [[oldText, 7], [newText, 7]] as const) {
@@ -367,15 +351,19 @@ export async function beachSweep(host: HTMLElement, editor: HTMLElement, write: 
     grain: grainCanvas(W, H, pal), wetC: tiny(), sheenC: tiny(),
     lace: Array.from({ length: Math.round(W / 5) }, () => ({ x: rand(0, W), d: rand(3, 44), rx: rand(3, 9), ry: rand(1.5, 4), a: rand(-0.4, 0.4) })),
     caustics: Array.from({ length: 18 }, () => ({ x: rand(0, W), y: rand(0, H), r: rand(6, 14), p: rand(0, 6) })),
-    spray: [], grit: [], finds: scatter(W, H, textRects(newText)),
+    spray: [], grit: [], finds: scatter(W, H, textRects(newText), withNew),
   };
 
   const t0 = performance.now();
-  let revealed: () => void = () => {};
-  const readable = new Promise<void>((resolve) => (revealed = resolve));
+  let settleAt: number | null = null;
+  let revealed: (run: WaveRun) => void = () => {};
+  const readable = new Promise<WaveRun>((resolve) => (revealed = resolve));
+  const run: WaveRun = { settle: () => void (settleAt ??= performance.now()) };
   const frame = (now: number) => {
     const el = now - t0, t = Math.min(1, el / WAVE_MS);
-    const sandA = el < SAND_IN_MS ? el / SAND_IN_MS : el > WAVE_MS + HOLD_MS ? 1 - clamp((el - WAVE_MS - HOLD_MS) / FADE_MS) : 1;
+    if (settleAt == null && el > WAVE_MS + SETTLE_FALLBACK_MS) settleAt = now;
+    const settled = settleAt == null ? 0 : now - settleAt;
+    const sandA = el < SAND_IN_MS ? el / SAND_IN_MS : settled > HOLD_MS ? 1 - clamp((settled - HOLD_MS) / FADE_MS) : 1;
     if (t < 1) {
       const cols = plan.map((c) => colTide(t, c));
       st.bs = cols.map((c) => c.b); st.ups = cols.map((c) => c.up);
@@ -403,11 +391,11 @@ export async function beachSweep(host: HTMLElement, editor: HTMLElement, write: 
       newText.style.clipPath = "";
       for (const f of st.finds) if (f.t0 == null) unearth(st, f, now, pal);
       for (const col of st.wet) for (let r = 0; r < rows; r++) if (col[r] === null) col[r] = now;
-      revealed();
+      revealed(run);
     }
     drawSand(sandCtx, W, H, st, pal, now, sandA);
     newText.style.opacity = st.done ? String(sandA) : "1";
-    if (el < WAVE_MS + HOLD_MS + FADE_MS) return void requestAnimationFrame(frame);
+    if (settleAt == null || settled < HOLD_MS + FADE_MS) return void requestAnimationFrame(frame);
     sand.remove(); newText.remove();
   };
   requestAnimationFrame(frame);

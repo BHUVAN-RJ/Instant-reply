@@ -4,12 +4,7 @@
   "version": "0.0.1",
   "description": "Thread-aware reply drafting for Gmail in your own voice.",
   "permissions": [
-    "storage",
-    "unlimitedStorage"
-  ],
-  "host_permissions": [
-    "https://mail.google.com/*",
-    "https://openrouter.ai/*"
+    "storage"
   ],
   "background": {
     "service_worker": "src/background/index.ts",

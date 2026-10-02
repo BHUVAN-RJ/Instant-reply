@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Undertone mockup</title>
+<!-- Undertone: the final mockup for apps/extension/src/content/themes/undertone/DESIGN.md. Built with the kit
+     (docs/design/kit). The theme CSS below targets the real selectors and moves into styles.ts. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600&display=swap">
+<link rel="stylesheet" href="../kit/mockup-kit.css">
+<!-- Ships as "IR Geist" (public/fonts); the mockup loads Geist from Google Fonts. -->
+<style id="theme-undertone">
+/* Undertone. The look Gmail would have if it had a little flair: Gmail's own card, a gradient underglow,
+   cut corner buttons (Refactor and Send), a spark switch, and a liquid Refactor. Written against the real
+   selectors so it moves into themes/undertone/styles.ts slot by slot. */
+@property --q-ang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+
+/* tokens */
+.ir-active-box, .ir-toggle {
+  --q-blue: #4c6fff; --q-violet: #8b5cf6; --q-cyan: #22b8e0; --q-ink: #2f3fb8; --q-outline: #9aa0a6;
+  --q-grad: linear-gradient(120deg, var(--q-blue), var(--q-violet) 55%, var(--q-cyan));
+  --q-send: linear-gradient(120deg, #4c6fff, #7c4dff); --q-on-send: #ffffff;
+  --q-glow: rgba(76, 111, 255, .38); --q-strong: #4c6fff; --q-font: "IR Geist", "Geist", system-ui, sans-serif;
+}
+.ir-active-box { --q-tint: color-mix(in srgb, var(--q-blue) 7%, var(--ir-paper)); --q-tint-hover: color-mix(in srgb, var(--q-blue) 13%, var(--ir-paper)); }
+.ir-active-box[data-ir-theme="dark"] {
+  --q-blue: #8fa6ff; --q-violet: #b49cff; --q-cyan: #5fd4ee; --q-ink: #c3ceff;
+  --q-send: linear-gradient(120deg, #8fa6ff, #b49cff); --q-on-send: #10163a; --q-glow: rgba(143, 166, 255, .32);
+}
+
+/* card: Gmail's own card, redrawn by the skin, and a gradient underglow along its bottom edge */
+.ir-skin > i { position: absolute; }
+.ir-skin > .q-card { inset: 0; border-radius: 16px; background: var(--ir-paper); box-shadow: 0 1px 2px rgba(60,64,67,.3), 0 2px 6px 2px rgba(60,64,67,.15); }
+.ir-active-box[data-ir-theme="dark"] > .ir-skin > .q-card { box-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.ir-skin > .q-glow { left: 28px; right: 28px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--q-grad); box-shadow: 0 3px 16px 2px var(--q-glow); }
+
+/* head: the rule is a gradient hairline that fades at both ends; the band is a faint left to right wash */
+.ir-active-box[data-ir-head-style="rule"] > .ir-skin > .q-rule { left: 16px; right: 16px; top: calc(var(--ir-head, 0px) - 1px); height: 1px; opacity: .6;
+  background: linear-gradient(90deg, transparent, var(--q-blue) 18%, var(--q-violet) 60%, transparent); }
+.ir-active-box:not([data-ir-layout="window"])[data-ir-head-style="band"] > .ir-skin > .q-rule { left: 0; right: 0; top: 0; height: var(--ir-head, 0px); border-radius: 16px 16px 0 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--q-blue) 9%, transparent), color-mix(in srgb, var(--q-violet) 6%, transparent) 70%, transparent);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--q-violet) 40%, transparent); }
+
+/* body: 8px of room under the rule */
+.ir-active-box[data-ir-head-style="rule"] table.iN { border-top: 8px solid transparent !important; }
+
+/* pinned Send row: the card's paper and round bottom continue under it */
+.ir-active-box .aDj.ahe { background: var(--ir-paper) !important; border-radius: 0 0 16px 16px; }
+
+/* window: Gmail's window is the frame. No card, no glow; the rule sits under Subject; compact buttons */
+.ir-active-box[data-ir-layout="window"] > .ir-skin > .q-card { border-radius: 0; box-shadow: none; }
+.ir-active-box[data-ir-layout="window"] > .ir-skin > .q-glow { display: none; }
+.ir-active-box[data-ir-layout="window"] .ir-refactor { height: 32px; padding: 0 12px 0 30px; font-size: 13px; }
+.ir-active-box[data-ir-layout="window"] .ir-refactor::after { left: 10px; }
+.ir-active-box[data-ir-layout="window"] .dC .aoO { padding: 0 16px !important; }
+
+/* toggle: a spark. A grey line with a diamond; on, the line fills with the gradient and the diamond slides
+   to its end and glows. No visible label (the tooltip names it). */
+.ir-toggle { position: relative; width: 30px; height: 36px; padding: 0; margin-left: 8px; border: 0; font-size: 0; color: transparent;
+  background: linear-gradient(var(--q-outline), var(--q-outline)) center / 26px 2px no-repeat; }
+.ir-toggle::before { content: ""; position: absolute; left: 2px; right: 2px; top: 50%; height: 2px; margin-top: -1px; border-radius: 2px; background: var(--q-grad);
+  transform: scaleX(0); transform-origin: left; transition: transform .3s cubic-bezier(.2,0,0,1); }
+.ir-toggle .ir-dot { position: absolute; left: 1px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 1px; background: var(--q-outline);
+  transform: rotate(45deg); transition: left .3s cubic-bezier(.2,0,0,1), background .2s, box-shadow .2s, transform .15s; }
+.ir-toggle[data-active="true"]::before { transform: scaleX(1); }
+.ir-toggle[data-active="true"] .ir-dot { left: 21px; background: var(--q-cyan); box-shadow: 0 0 8px 1px var(--q-glow); }
+.ir-toggle:hover .ir-dot { transform: rotate(45deg) scale(1.3); }
+.ir-toggle[data-active="true"]:hover .ir-dot { box-shadow: 0 0 12px 3px var(--q-glow); }
+.ir-toggle:focus-visible { outline: 2px solid var(--q-strong); outline-offset: 2px; border-radius: 4px; }
+
+/* refactor: a cut corner tile. The gradient shows as a hairline around a tinted inside; a gradient glyph */
+.ir-refactor { position: relative; isolation: isolate; display: inline-flex; align-items: center; height: 36px; padding: 0 16px 0 34px; margin-left: 8px;
+  border: 0; border-radius: 0; background: var(--q-grad); clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); color: var(--q-ink); font: 500 14px/1 var(--q-font); letter-spacing: -.005em;
+  transition: transform .15s cubic-bezier(.2,0,0,1); }
+.ir-refactor::before { content: ""; position: absolute; inset: 1.25px; z-index: -1; background: var(--q-tint); clip-path: polygon(0 0, calc(100% - 9.5px) 0, 100% 9.5px, 100% 100%, 9.5px 100%, 0 calc(100% - 9.5px)); transition: background .15s; }
+.ir-refactor::after { content: ""; position: absolute; left: 12px; top: 50%; width: 16px; height: 16px; margin-top: -8px; background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%221.6%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2.5%204.5h7M2.5%208h5M2.5%2011.5h3.5%22/%3E%3Cpath%20d%3D%22M13.5%208.5a3%203%200%201%201-1.2-2.4%22/%3E%3Cpath%20d%3D%22M12.6%203.9l-.3%201.9%201.9.2%22/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat; }
+.ir-active-box[data-ir-theme="dark"] .ir-refactor::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238fa6ff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%23b49cff%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235fd4ee%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%221.6%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2.5%204.5h7M2.5%208h5M2.5%2011.5h3.5%22/%3E%3Cpath%20d%3D%22M13.5%208.5a3%203%200%201%201-1.2-2.4%22/%3E%3Cpath%20d%3D%22M12.6%203.9l-.3%201.9%201.9.2%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-refactor:hover:not(:disabled) { transform: translateY(-1px); }
+.ir-refactor:hover:not(:disabled)::before { background: var(--q-tint-hover); }
+.ir-refactor:active:not(:disabled) { transform: scale(.97); transition-duration: .05s; }
+.ir-refactor:focus-visible { outline: 2px solid var(--q-strong); outline-offset: -5px; }
+.ir-refactor:disabled { color: color-mix(in srgb, var(--q-ink) 65%, transparent); animation: q-spin 1.6s linear infinite;
+  background: conic-gradient(from var(--q-ang), var(--q-blue), var(--q-violet), var(--q-cyan), transparent 70%, var(--q-blue)); }
+@keyframes q-spin { to { --q-ang: 360deg; } }
+
+/* send: the same cut corner tile, filled (blue to violet, so white text reads), and its arrow as a
+   smaller tile beside it */
+.ir-active-box .dC, .ir-active-box .dC * { background-color: transparent !important; border-color: transparent !important; box-shadow: none !important; outline: none !important; }
+.ir-active-box .dC .T-I { background: var(--q-send) !important; border: 0 !important; border-radius: 0 !important; margin: 0 !important; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  transition: transform .15s cubic-bezier(.2,0,0,1), filter .15s; }
+.ir-active-box .dC .aoO { color: var(--q-on-send) !important; font: 500 14px/1 var(--q-font) !important; letter-spacing: 0 !important; padding: 0 22px !important; }
+.ir-active-box .dC .hG { margin-left: 3px !important; clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px)); color: var(--q-on-send) !important; }
+.ir-active-box .dC .hG * { color: var(--q-on-send) !important; }
+.ir-active-box .dC .T-I:hover { transform: translateY(-1px); filter: brightness(1.08) saturate(1.1); }
+.ir-active-box .dC .T-I:active { transform: scale(.97); transition-duration: .05s; }
+.ir-active-box .dC .T-I:focus-visible { outline: 2px solid var(--q-on-send) !important; outline-offset: -5px; }
+
+/* caret: violet */
+.ir-active-box [contenteditable="true"][role="textbox"] { caret-color: var(--q-violet); }
+
+/* comments: the shared comment blue; pins and the note box are cut corner tiles */
+::highlight(ir-comment) { background-color: rgba(26, 143, 214, .12); text-decoration: underline 1px #1a8fd6; text-underline-offset: 3px; }
+.ir-pin { min-width: 18px; height: 18px; padding: 0 5px; border: 0; background: #1a8fd6; color: #fff; font: 600 10.5px/18px "IR Geist", "Geist", system-ui, sans-serif; clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px)); transition: transform .12s; }
+.ir-pin:hover { transform: translateY(-1px); }
+.ir-pin.ir-stale { background: #9aa0a6; }
+.ir-note { padding: 10px 12px; background: linear-gradient(var(--ir-paper, #fff), var(--ir-paper, #fff)) padding-box, linear-gradient(120deg, #4c6fff, #8b5cf6 55%, #22b8e0) border-box;
+  border: 1px solid transparent; color: inherit; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px)); }
+.ir-note textarea { font-family: "IR Geist", "Geist", system-ui, sans-serif; }
+.ir-note-hint { font: 500 11px/1 "IR Geist", "Geist", system-ui, sans-serif; opacity: .6; }
+.ir-note-delete { border: 0; background: transparent; color: #4c6fff; font: 500 12px/1 "IR Geist", "Geist", system-ui, sans-serif; padding: 5px 8px; }
+
+
+/* icons: thin line glyphs in Gmail's ink with one gradient accent each (a stroke, or the spark's small
+   diamond); on hover a tinted cut corner tile appears behind and the glyph lifts 1px */
+.ir-active-box [data-ir-icon] { position: relative; background-image: none !important; }
+.ir-active-box [data-ir-icon] > * { opacity: 0 !important; }
+.ir-active-box [data-ir-icon]:hover { background-color: transparent !important; }
+.ir-active-box [data-ir-icon]::before { content: ""; position: absolute; inset: 3px; background: transparent; clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px)); transition: background .12s; pointer-events: none; }
+.ir-active-box [data-ir-icon]:hover::before { background: color-mix(in srgb, var(--q-blue) 12%, transparent); }
+.ir-active-box [data-ir-icon]::after { content: ""; position: absolute; left: 50%; top: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px; background: center / contain no-repeat; pointer-events: none; transition: transform .15s cubic-bezier(.2,0,0,1); }
+.ir-active-box [data-ir-icon]:hover::after { transform: translateY(-1px); }
+.ir-active-box [data-ir-icon]:active::after { transform: scale(.94); transition-duration: .05s; }
+.ir-active-box [data-ir-icon="format"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%233c4043%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6.5%2015.5%2012%204l5.5%2011.5M8.6%2011.2h6.8%22/%3E%3Cpath%20d%3D%22M4%2020h16%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%222%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="format"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238fa6ff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%23b49cff%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235fd4ee%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23e3e3e3%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6.5%2015.5%2012%204l5.5%2011.5M8.6%2011.2h6.8%22/%3E%3Cpath%20d%3D%22M4%2020h16%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%222%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box [data-ir-icon="attach"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%233c4043%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M15.5%208v7.5a3.5%203.5%200%200%201-7%200V6.5a2.3%202.3%200%200%201%204.6%200v8.7a1.1%201.1%200%200%201-2.2%200V8.5%22/%3E%3Cpath%20d%3D%22M19%203.3l1.7%201.7-1.7%201.7-1.7-1.7z%22%20fill%3D%22url%28%23g%29%22%20stroke%3D%22none%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="attach"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238fa6ff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%23b49cff%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235fd4ee%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23e3e3e3%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M15.5%208v7.5a3.5%203.5%200%200%201-7%200V6.5a2.3%202.3%200%200%201%204.6%200v8.7a1.1%201.1%200%200%201-2.2%200V8.5%22/%3E%3Cpath%20d%3D%22M19%203.3l1.7%201.7-1.7%201.7-1.7-1.7z%22%20fill%3D%22url%28%23g%29%22%20stroke%3D%22none%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box [data-ir-icon="link"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%233c4043%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10%2014.5a3.5%203.5%200%200%201%200-5l2.5-2.5a3.5%203.5%200%200%201%205%205l-1%201%22/%3E%3Cpath%20d%3D%22M14%209.5a3.5%203.5%200%200%201%200%205L11.5%2017a3.5%203.5%200%200%201-5-5l1-1%22/%3E%3Cpath%20d%3D%22M12%2010.2l1.8%201.8-1.8%201.8-1.8-1.8z%22%20fill%3D%22url%28%23g%29%22%20stroke%3D%22none%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="link"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238fa6ff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%23b49cff%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235fd4ee%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23e3e3e3%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10%2014.5a3.5%203.5%200%200%201%200-5l2.5-2.5a3.5%203.5%200%200%201%205%205l-1%201%22/%3E%3Cpath%20d%3D%22M14%209.5a3.5%203.5%200%200%201%200%205L11.5%2017a3.5%203.5%200%200%201-5-5l1-1%22/%3E%3Cpath%20d%3D%22M12%2010.2l1.8%201.8-1.8%201.8-1.8-1.8z%22%20fill%3D%22url%28%23g%29%22%20stroke%3D%22none%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box [data-ir-icon="emoji"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%233c4043%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%228%22/%3E%3Cpath%20d%3D%22M8.8%2013.8a3.6%203.6%200%200%200%206.4%200%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M9.5%2010h.01M14.5%2010h.01%22%20stroke-width%3D%222.6%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="emoji"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238fa6ff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%23b49cff%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235fd4ee%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23e3e3e3%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%228%22/%3E%3Cpath%20d%3D%22M8.8%2013.8a3.6%203.6%200%200%200%206.4%200%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M9.5%2010h.01M14.5%2010h.01%22%20stroke-width%3D%222.6%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box [data-ir-icon="drive"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%233c4043%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%204h6l6%2010.5-3%205.5H6l-3-5.5z%22/%3E%3Cpath%20d%3D%22M9%204l6%2010.5%22/%3E%3Cpath%20d%3D%22M3.5%2014.5h17%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%222%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="drive"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238fa6ff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%23b49cff%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235fd4ee%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23e3e3e3%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%204h6l6%2010.5-3%205.5H6l-3-5.5z%22/%3E%3Cpath%20d%3D%22M9%204l6%2010.5%22/%3E%3Cpath%20d%3D%22M3.5%2014.5h17%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%222%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box [data-ir-icon="photo"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%233c4043%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.5%204.5h12l5%205v10h-17z%22/%3E%3Cpath%20d%3D%22M4.5%2017l4.5-4.5%203.5%203.5%202-2%205%204%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M15.5%206.9l1.6%201.6-1.6%201.6-1.6-1.6z%22%20fill%3D%22url%28%23g%29%22%20stroke%3D%22none%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="photo"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238fa6ff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%23b49cff%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235fd4ee%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23e3e3e3%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.5%204.5h12l5%205v10h-17z%22/%3E%3Cpath%20d%3D%22M4.5%2017l4.5-4.5%203.5%203.5%202-2%205%204%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%222%22/%3E%3Cpath%20d%3D%22M15.5%206.9l1.6%201.6-1.6%201.6-1.6-1.6z%22%20fill%3D%22url%28%23g%29%22%20stroke%3D%22none%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box [data-ir-icon="signature"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%233c4043%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.5%2015c1.6-5%203.6-9%205-8.2s-2%208%20.2%208%203-4.4%204.6-4.4-.2%204%201.8%204%202.6-2%204.4-2%22/%3E%3Cpath%20d%3D%22M3.5%2020h17%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%222%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="signature"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238fa6ff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%23b49cff%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235fd4ee%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23e3e3e3%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.5%2015c1.6-5%203.6-9%205-8.2s-2%208%20.2%208%203-4.4%204.6-4.4-.2%204%201.8%204%202.6-2%204.4-2%22/%3E%3Cpath%20d%3D%22M3.5%2020h17%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%222%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box [data-ir-icon="meet"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%233c4043%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.5%205.5h13l4%204v11h-17z%22/%3E%3Cpath%20d%3D%22M8%203.5v4M14%203.5v4M3.5%2010h17%22/%3E%3Cpath%20d%3D%22M14.5%2013.0l2.2%202.2-2.2%202.2-2.2-2.2z%22%20fill%3D%22url%28%23g%29%22%20stroke%3D%22none%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="meet"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238fa6ff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%23b49cff%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235fd4ee%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23e3e3e3%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.5%205.5h13l4%204v11h-17z%22/%3E%3Cpath%20d%3D%22M8%203.5v4M14%203.5v4M3.5%2010h17%22/%3E%3Cpath%20d%3D%22M14.5%2013.0l2.2%202.2-2.2%202.2-2.2-2.2z%22%20fill%3D%22url%28%23g%29%22%20stroke%3D%22none%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box [data-ir-icon="more"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%233c4043%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%225%22%20r%3D%221.4%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2219%22%20r%3D%221.4%22/%3E%3Cpath%20d%3D%22M12%209.6l2.4%202.4-2.4%202.4-2.4-2.4z%22%20fill%3D%22url%28%23g%29%22%20stroke%3D%22none%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="more"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238fa6ff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%23b49cff%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235fd4ee%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23e3e3e3%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%225%22%20r%3D%221.4%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2219%22%20r%3D%221.4%22/%3E%3Cpath%20d%3D%22M12%209.6l2.4%202.4-2.4%202.4-2.4-2.4z%22%20fill%3D%22url%28%23g%29%22%20stroke%3D%22none%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box [data-ir-icon="trash"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%233c4043%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%207l1.5%2013h9L18%207%22/%3E%3Cpath%20d%3D%22M10%2011v6M14%2011v6%22/%3E%3Cpath%20d%3D%22M4%207h16M9%207l1-3h4l1%203%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%222%22/%3E%3C/g%3E%3C/svg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="trash"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238fa6ff%22/%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%23b49cff%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235fd4ee%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23e3e3e3%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%207l1.5%2013h9L18%207%22/%3E%3Cpath%20d%3D%22M10%2011v6M14%2011v6%22/%3E%3Cpath%20d%3D%22M4%207h16M9%207l1-3h4l1%203%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%222%22/%3E%3C/g%3E%3C/svg%3E"); }
+/* discard: the same family, a bin with a gradient lid, 15% bigger, still the last button */
+.ir-active-box [data-ir-icon="trash"] { transform: scale(1.15); margin-left: 6px; }
+
+/* formatting bar: no grey fill, a gradient hairline along its top that fades at both ends; its buttons
+   get the same cut corner tile on hover and when pressed */
+.ir-active-box .J-Z[role="toolbar"] { position: relative; background: transparent !important; border-radius: 0 !important; }
+.ir-active-box .J-Z[role="toolbar"]::before { content: ""; position: absolute; left: 8px; right: 8px; top: 0; height: 1px; opacity: .5; pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--q-blue) 20%, var(--q-violet) 60%, transparent); }
+.ir-active-box .J-Z[role="toolbar"] .J-Z-axR { background: color-mix(in srgb, var(--q-violet) 35%, transparent) !important; }
+.ir-active-box .J-Z[role="toolbar"] [role="button"], .ir-active-box .J-Z[role="toolbar"] [role="listbox"] { border-radius: 0 !important; clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px)); transition: background .12s; }
+.ir-active-box .J-Z[role="toolbar"] [role="button"]:hover, .ir-active-box .J-Z[role="toolbar"] [role="listbox"]:hover { background-color: color-mix(in srgb, var(--q-blue) 12%, transparent) !important; }
+.ir-active-box .J-Z[role="toolbar"] [aria-pressed="true"] { background-color: color-mix(in srgb, var(--q-violet) 18%, transparent) !important; color: var(--q-ink) !important; }
+
+/* avatar: a thin violet ring on a paper gap, with a soft glow below */
+[data-ir-avatar] { box-shadow: 0 0 0 2px var(--ir-paper, #fff), 0 0 0 3.5px #7c6cff, 0 6px 14px -4px rgba(124, 108, 255, .55) !important; }
+
+/* cursors (28px, still): a dark arrow with a white outline and a small gradient diamond, the same arrow
+   filled with the gradient over anything clickable, and a slim gradient I-beam */
+.ir-active-box, .ir-active-box * { cursor: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2228%22%20height%3D%2228%22%20viewBox%3D%220%200%2028%2028%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.7%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath%20d%3D%22M5%203.5v17.8l4.6-4.2%203.4%207.2%203.2-1.5-3.3-7.1h6.3z%22%20fill%3D%22%231f1f1f%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.6%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M19.5%203.5l2%202-2%202-2-2z%22%20fill%3D%22url%28%23g%29%22%20stroke%3D%22%23fff%22%20stroke-width%3D%22.8%22/%3E%3C/svg%3E") 5 3, default; }
+.ir-active-box [role="button"], .ir-active-box button:not(:disabled), .ir-active-box a, .ir-active-box [role="link"], .ir-active-box [role="option"], .ir-active-box [role="listbox"], .ir-active-box [data-ir-icon], .ir-active-box .ir-pin { cursor: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2228%22%20height%3D%2228%22%20viewBox%3D%220%200%2028%2028%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.7%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath%20d%3D%22M5%203.5v17.8l4.6-4.2%203.4%207.2%203.2-1.5-3.3-7.1h6.3z%22%20fill%3D%22url%28%23g%29%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.6%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E") 5 3, pointer; }
+.ir-active-box input, .ir-active-box textarea, .ir-active-box [contenteditable="true"][role="textbox"] { cursor: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2228%22%20height%3D%2228%22%20viewBox%3D%220%200%2028%2028%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234c6fff%22/%3E%3Cstop%20offset%3D%22.7%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2322b8e0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath%20d%3D%22M10%204.5h8M10%2023.5h8M14%204.5v19%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M10%204.5h8M10%2023.5h8M14%204.5v19%22%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E") 14 14, text; }
+.ir-active-box [contenteditable="true"][role="textbox"] * { cursor: inherit; }
+
+/* selection: the strong blue under white text, apart from the comment wash */
+.ir-active-box [contenteditable="true"][role="textbox"]::selection, .ir-active-box [contenteditable="true"][role="textbox"] ::selection { background: #4c6fff; color: #fff; }
+
+/* window: a little tighter so Gmail keeps room for its toolbar icons */
+.ir-active-box[data-ir-layout="window"] .ir-toggle { margin-left: 4px; }
+
+/* swoosh: the liquid layers over the writing area, and the New chip */
+.q-liquid { z-index: 6; background: var(--ir-paper); }
+.q-new { position: absolute; right: 8px; top: 4px; padding: 4px 9px; font: 600 11px/1 var(--q-font); color: var(--q-ink); border: 1px solid transparent;
+  background: linear-gradient(var(--q-tint), var(--q-tint)) padding-box, var(--q-grad) border-box; clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px)); }
+</style>
+</head>
+<body>
+<script src="../kit/mockup-kit.js"></script>
+<script>
+// Liquid: an SVG turbulence filter displaces a copy of the text. Before: the copy wavers like heat haze.
+// During: it melts (the displacement grows while it fades), the draft is written underneath, and a copy of
+// the draft condenses out of the ripples. The editor itself is never filtered.
+let filterCount = 0;
+function liquidFilter(host) {
+  const id = `ir-q-liquid-${++filterCount}`;
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "0"); svg.setAttribute("height", "0"); svg.style.position = "absolute";
+  svg.innerHTML = `<filter id="${id}" x="-5%" y="-10%" width="110%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.015 0.09" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter>`;
+  host.append(svg);
+  return { url: `url(#${id})`, map: svg.querySelector("feDisplacementMap"), remove: () => svg.remove() };
+}
+// A copy of the text over the editor, on paper, its words in a wrapper so they can fade on their own.
+function liquidCopy(ctx, f) {
+  const g = ctx.ghost("q-liquid");
+  g.innerHTML = `<div class="q-words">${g.innerHTML}</div>`;
+  g.style.filter = f.url;
+  return { node: g, words: g.firstElementChild };
+}
+const tween = (ms, fn) => new Promise((done) => {
+  const t0 = performance.now();
+  const step = (t) => { const k = Math.min(1, (t - t0) / ms); fn(k); if (k < 1) requestAnimationFrame(step); else done(); };
+  requestAnimationFrame(step);
+});
+const easeOut = (k) => 1 - Math.pow(1 - k, 3);
+
+MockupKit.start({
+  title: "Undertone",
+  note: "Gmail's own card with a gradient underglow, cut corner Refactor and Send, a spark switch, and a liquid Refactor. Press Refactor; tune the liquid below.",
+  options: [{ id: "undertone", label: "Undertone", style: "theme-undertone" }],
+  variants: ["native"],
+  skin: '<i class="q-card"></i><i class="q-glow"></i><i class="q-rule"></i>',
+  labels: { refactor: "Refactor", working: "Refactoring" },
+  tune: [
+    { name: "hazePx", label: "Heat haze while thinking (px)", min: 0, max: 8, step: 0.5, value: 3 },
+    { name: "hazeMs", label: "Haze period (ms)", min: 800, max: 4000, step: 100, value: 1900 },
+    { name: "meltPx", label: "Melt depth (px)", min: 20, max: 140, step: 5, value: 70 },
+    { name: "meltMs", label: "Melt (ms)", min: 200, max: 1500, step: 50, value: 550 },
+    { name: "formMs", label: "Condense (ms)", min: 300, max: 2000, step: 50, value: 750 },
+  ],
+  swoosh: {
+    before(ctx) {
+      const f = liquidFilter(ctx.host), copy = liquidCopy(ctx, f);
+      let alive = true;
+      const loop = (t) => {
+        if (!alive) return;
+        f.map.setAttribute("scale", (ctx.tune.hazePx / 2 * (1 + Math.sin((t / ctx.tune.hazeMs) * Math.PI * 2))).toFixed(2));
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+      ctx.host._qLiquid = { f, copy };
+      return () => { alive = false; };
+    },
+    async during(ctx, write) {
+      let { f, copy } = ctx.host._qLiquid || {};
+      if (!f) { f = liquidFilter(ctx.host); copy = liquidCopy(ctx, f); }
+      delete ctx.host._qLiquid;
+      try {
+        const from = Number(f.map.getAttribute("scale")) || 0;
+        await tween(ctx.tune.meltMs, (k) => { f.map.setAttribute("scale", from + k * k * ctx.tune.meltPx); copy.words.style.opacity = 1 - k; });
+        write();
+        copy.node.remove();
+        copy = liquidCopy(ctx, f);
+        copy.words.style.opacity = 0;
+        await tween(ctx.tune.formMs, (k) => { f.map.setAttribute("scale", (from + ctx.tune.meltPx) * (1 - easeOut(k))); copy.words.style.opacity = easeOut(k); });
+      } finally {
+        copy && copy.node.remove();
+        f.remove();
+      }
+    },
+    after(ctx) {
+      if (!ctx.showNew) return;
+      const layer = ctx.layer("div");
+      layer.innerHTML = '<span class="q-new">New</span>';
+      layer.animate([{ opacity: 0, transform: "translateY(-3px)" }, { opacity: 1, transform: "none", offset: 0.06 }, { opacity: 1, offset: 0.89 }, { opacity: 0 }], { duration: 2800 }).finished.then(() => layer.remove());
+    },
+  },
+});
+</script>
+</body>
+</html>

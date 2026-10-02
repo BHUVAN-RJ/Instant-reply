@@ -23,6 +23,7 @@
       fieldset.look legend { font-weight: 600; padding: 0 4px; }
       fieldset.look label { display: inline-flex; align-items: center; gap: 5px; margin: 0; font-weight: 400; cursor: pointer; }
       fieldset.look input { width: auto; }
+      fieldset.look .share { display: flex; margin-top: 6px; }
     </style>
   </head>
   <body>
@@ -45,6 +46,14 @@
       <div id="looks" class="looks"></div>
       <label class="new-mark"><input type="checkbox" id="new-mark" /> Show "New" on every draft</label>
       <label class="new-mark"><input type="checkbox" id="head-band" /> Decorate the To line of replies</label>
+    </fieldset>
+    <fieldset class="look" id="stats" hidden>
+      <legend>Usage</legend>
+      <p class="hint" id="stats-totals"></p>
+      <label class="share"><input type="checkbox" id="stats-sharing" /> <span id="stats-share-label"></span></label>
+      <label for="stats-name">Name shown with your counts</label>
+      <input id="stats-name" type="text" spellcheck="false" />
+      <p class="hint" id="stats-hint"></p>
     </fieldset>
     <div class="row"><button type="button" id="voice">Your voice and prompts</button></div>
     <script type="module" src="./main.ts"></script>

@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matrix mockup</title>
+<!--
+  Matrix theme mockup, round 2, on the mockup kit. Three directions as tabs (A Construct, B Operator,
+  C Agent); the shared block holds what they have in common (glyph icons, cursors, comments, the
+  formatting bar, the avatar, the pills and the swoosh layers). The code rain behind the card is drawn
+  by the ornament: it answers typing and freezes like bullet time when you stop.
+-->
+<link rel="stylesheet" href="../kit/mockup-kit.css">
+
+<style data-mk-shared>
+/* OCR-A: the face of the film's own posters (billing, release date, the rain). Public domain, bundled. */
+/* VT323 (OFL): a CRT terminal face, for the buttons and the "New" mark. */
+@font-face { font-family: "IR Terminal"; src: url("../../../apps/extension/public/fonts/vt323.woff2") format("woff2"); font-display: block; }
+@font-face { font-family: "IR OCR"; src: url("../../../apps/extension/public/fonts/ocr-a.woff2") format("woff2"); font-display: block; }
+
+/* Tokens */
+.ir-active-box { --mx-glass: #020a04; --mx-term: #06140a; --mx-dim: #0f5c22; --mx-mid: #009e2a; --mx-ph: #00ff41; --mx-white: #d9ffe0;
+  --mx-edge: #0d2412; --mx-line: #009e2a; --mx-code: #00a82d;
+  --mx-glow: 0 0 6px rgba(0, 255, 65, .55); --mx-glow-hot: 0 0 14px rgba(0, 255, 65, .85);
+  --mx-scan: repeating-linear-gradient(0deg, rgba(0, 0, 0, .24) 0 1px, transparent 1px 3px);
+  --mx-title: "IR Terminal", "VT323", ui-monospace, monospace; --mx-hot: #007a20;
+  --mx-mono: "IR OCR", "OCR A Std", "OCR A Extended", ui-monospace, Menlo, Consolas, monospace; }
+.ir-active-box[data-ir-theme="dark"] { --mx-edge: #00ff41; --mx-line: #00ff41; --mx-code: #00ff41; --mx-hot: #d9ffe0; }
+
+/* Card base, shared by every frame: the paper and the faint rain over it (still under the text), the To
+   line and the window. A frame sets --mx-radius or --mx-clip on .ir-skin and draws its edge. */
+.ir-skin > * { display: none; }
+.ir-skin > .sk-paper { display: block; position: absolute; inset: 0; z-index: 1; border-radius: var(--mx-radius, 0); clip-path: var(--mx-clip, none); background: var(--ir-paper); }
+.ir-skin > .sk-bezel { display: block; position: absolute; inset: 0; z-index: 2; overflow: hidden; border-radius: var(--mx-radius, 0); clip-path: var(--mx-clip, none); animation: mx-power .6s ease-out both; }
+.ir-skin > .sk-bezel > canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ir-skin > .sk-stream > canvas, .ir-skin > .sk-band > canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ir-active-box[data-ir-head-style="rule"] .ir-skin > .sk-stream { display: block; position: absolute; z-index: 4; left: 14px; right: 14px; top: calc(var(--ir-head) - 9px); height: 13px; }
+.ir-active-box:not([data-ir-layout="window"])[data-ir-head-style="band"] .ir-skin > .sk-band { display: block; position: absolute; z-index: 4; left: 0; right: 0; top: 0; height: var(--ir-head); overflow: hidden;
+  clip-path: var(--mx-clip, none); border-radius: var(--mx-radius, 0) var(--mx-radius, 0) 0 0;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .26) 0 1px, transparent 1px 3px), #020a04; border-bottom: 1px solid #00ff41; }
+.ir-active-box:not([data-ir-layout="window"])[data-ir-head-style="band"] .ir-skin > .sk-band > canvas { -webkit-mask: linear-gradient(90deg, transparent 30%, #000); mask: linear-gradient(90deg, transparent 30%, #000); }
+.ir-active-box:not([data-ir-layout="window"])[data-ir-head-style="band"] [data-ir-head] { color: #00ff41; }
+.ir-active-box:not([data-ir-layout="window"])[data-ir-head-style="band"] [data-ir-head] .pv-chip { background: #06140a; box-shadow: inset 0 0 0 1px #0f5c22; text-shadow: 0 0 6px rgba(0, 255, 65, .5); }
+/* In a window: square, rain only below To and Subject, and no frame (Gmail's window is the frame) */
+.ir-active-box[data-ir-layout="window"] .ir-skin { --mx-radius: 0; --mx-clip: none; }
+.ir-active-box[data-ir-layout="window"] .ir-skin > .sk-bezel { top: var(--ir-head); }
+.ir-active-box[data-ir-layout="window"] .ir-skin > :is(.sk-edge, .sk-c, .sk-led) { display: none; }
+
+/* Body: room under the To line for the rule */
+.ir-active-box table.iN td { padding-top: 12px; }
+
+/* Formatting bar: no fill; dashed hairlines above and below, like the shell buttons */
+.ir-active-box .J-Z { background: transparent !important; border-radius: 0; color: var(--mx-edge); box-shadow: none;
+  border-top: 1px dashed color-mix(in srgb, var(--mx-line) 45%, transparent); border-bottom: 1px dashed color-mix(in srgb, var(--mx-line) 45%, transparent); }
+.ir-active-box .J-Z [role="button"], .ir-active-box .J-Z [role="listbox"] { color: var(--mx-edge); border-radius: 0; transition: background-color .12s, color .12s; }
+.ir-active-box .J-Z [role="listbox"] { font: 13px var(--mx-mono); }
+.ir-active-box .J-Z [role="button"]:hover, .ir-active-box .J-Z [role="listbox"]:hover { background: rgba(0, 255, 65, .14); color: var(--mx-line); }
+.ir-active-box .J-Z [role="button"]:active { background: rgba(0, 255, 65, .3); color: var(--mx-line); }
+.ir-active-box .J-Z .J-Z-axR { background: color-mix(in srgb, var(--mx-line) 35%, transparent); }
+
+/* Toolbar icons: pixel glyphs on a 2px grid; deep green on light cards, phosphor on dark cards and on hover */
+.ir-active-box [data-ir-icon] { position: relative; overflow: hidden; border-radius: 0 !important; opacity: 1 !important; background-image: none !important;
+  transition: background-color .12s, box-shadow .12s; }
+.ir-active-box [data-ir-icon] > * { opacity: 0 !important; }
+.ir-active-box [data-ir-icon]::after { content: ""; position: absolute; left: 50%; top: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px;
+  background: center / contain no-repeat; transition: transform .12s; pointer-events: none; }
+.ir-active-box [data-ir-icon]::before { content: ""; position: absolute; inset: 0; opacity: 0; background-repeat: no-repeat;
+  background-image: linear-gradient(transparent, rgba(0, 255, 65, .8), #d9ffe0), linear-gradient(transparent, rgba(0, 255, 65, .7), #d9ffe0), linear-gradient(transparent, rgba(0, 255, 65, .6), #d9ffe0);
+  background-size: 2px 16px, 2px 22px, 2px 12px; background-position: 8px -16px, 16px -22px, 24px -12px; pointer-events: none; }
+.ir-active-box [data-ir-icon]:hover { background-color: var(--mx-glass) !important; box-shadow: inset 0 0 0 1px var(--mx-ph), inset 0 0 10px rgba(0, 255, 65, .35); }
+.ir-active-box [data-ir-icon]:hover::after { transform: translateY(-1px); }
+.ir-active-box [data-ir-icon]:hover::before { animation: mx-drop .7s ease-in; }
+.ir-active-box [data-ir-icon="trash"]::after { width: 26px; height: 26px; margin: -13px 0 0 -13px; }
+.ir-active-box [data-ir-icon="trash"]:hover::after { animation: mx-derez .3s steps(4); }
+.ir-active-box [data-ir-icon="format"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M8%202h4v2h-4zM6%204h2v4h-2zM12%204h2v4h-2zM4%208h2v7h-2zM14%208h2v7h-2zM6%2010h8v2h-8zM2%2017h16v2h-16z%27%20fill%3D%27%230d2412%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="format"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M8%202h4v2h-4zM6%204h2v4h-2zM12%204h2v4h-2zM4%208h2v7h-2zM14%208h2v7h-2zM6%2010h8v2h-8zM2%2017h16v2h-16z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="format"]:hover::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M8%202h4v2h-4zM6%204h2v4h-2zM12%204h2v4h-2zM4%208h2v7h-2zM14%208h2v7h-2zM6%2010h8v2h-8zM2%2017h16v2h-16z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="attach"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M7%202h6v2h-6zM5%204h2v11h-2zM13%204h2v11h-2zM7%2015h6v2h-6zM9%206h2v8h-2z%27%20fill%3D%27%230d2412%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="attach"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M7%202h6v2h-6zM5%204h2v11h-2zM13%204h2v11h-2zM7%2015h6v2h-6zM9%206h2v8h-2z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="attach"]:hover::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M7%202h6v2h-6zM5%204h2v11h-2zM13%204h2v11h-2zM7%2015h6v2h-6zM9%206h2v8h-2z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="link"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M1%206h8v2h-8zM1%2012h8v2h-8zM1%206h2v8h-2zM11%206h8v2h-8zM11%2012h8v2h-8zM17%206h2v8h-2zM6%209h8v2h-8z%27%20fill%3D%27%230d2412%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="link"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M1%206h8v2h-8zM1%2012h8v2h-8zM1%206h2v8h-2zM11%206h8v2h-8zM11%2012h8v2h-8zM17%206h2v8h-2zM6%209h8v2h-8z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="link"]:hover::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M1%206h8v2h-8zM1%2012h8v2h-8zM1%206h2v8h-2zM11%206h8v2h-8zM11%2012h8v2h-8zM17%206h2v8h-2zM6%209h8v2h-8z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="emoji"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M5%202h10v2h-10zM5%2016h10v2h-10zM2%205h2v10h-2zM16%205h2v10h-2zM3%203h2v2h-2zM15%203h2v2h-2zM3%2015h2v2h-2zM15%2015h2v2h-2zM7%207h2v2h-2zM11%207h2v2h-2zM6%2011h2v2h-2zM8%2013h4v2h-4zM12%2011h2v2h-2z%27%20fill%3D%27%230d2412%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="emoji"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M5%202h10v2h-10zM5%2016h10v2h-10zM2%205h2v10h-2zM16%205h2v10h-2zM3%203h2v2h-2zM15%203h2v2h-2zM3%2015h2v2h-2zM15%2015h2v2h-2zM7%207h2v2h-2zM11%207h2v2h-2zM6%2011h2v2h-2zM8%2013h4v2h-4zM12%2011h2v2h-2z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="emoji"]:hover::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M5%202h10v2h-10zM5%2016h10v2h-10zM2%205h2v10h-2zM16%205h2v10h-2zM3%203h2v2h-2zM15%203h2v2h-2zM3%2015h2v2h-2zM15%2015h2v2h-2zM7%207h2v2h-2zM11%207h2v2h-2zM6%2011h2v2h-2zM8%2013h4v2h-4zM12%2011h2v2h-2z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="drive"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M8%203h4v2h-4zM7%205h6v2h-6zM6%207h8v2h-8zM5%209h10v2h-10zM4%2011h12v2h-12zM3%2013h14v2h-14zM2%2015h16v2h-16z%27%20fill%3D%27%230d2412%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="drive"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M8%203h4v2h-4zM7%205h6v2h-6zM6%207h8v2h-8zM5%209h10v2h-10zM4%2011h12v2h-12zM3%2013h14v2h-14zM2%2015h16v2h-16z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="drive"]:hover::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M8%203h4v2h-4zM7%205h6v2h-6zM6%207h8v2h-8zM5%209h10v2h-10zM4%2011h12v2h-12zM3%2013h14v2h-14zM2%2015h16v2h-16z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="photo"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M2%204h16v2h-16zM2%2014h16v2h-16zM2%204h2v12h-2zM16%204h2v12h-2zM7%209h2v2h-2zM5%2011h6v3h-6zM11%2011h2v3h-2zM12%207h2v2h-2z%27%20fill%3D%27%230d2412%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="photo"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M2%204h16v2h-16zM2%2014h16v2h-16zM2%204h2v12h-2zM16%204h2v12h-2zM7%209h2v2h-2zM5%2011h6v3h-6zM11%2011h2v3h-2zM12%207h2v2h-2z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="photo"]:hover::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M2%204h16v2h-16zM2%2014h16v2h-16zM2%204h2v12h-2zM16%204h2v12h-2zM7%209h2v2h-2zM5%2011h6v3h-6zM11%2011h2v3h-2zM12%207h2v2h-2z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="signature"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M2%2013h2v2h-2zM4%2011h2v2h-2zM6%2013h2v2h-2zM8%2011h2v2h-2zM10%2013h2v2h-2zM11%209h2v2h-2zM13%207h2v2h-2zM15%205h2v2h-2zM17%203h2v2h-2zM2%2017h16v1h-16z%27%20fill%3D%27%230d2412%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="signature"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M2%2013h2v2h-2zM4%2011h2v2h-2zM6%2013h2v2h-2zM8%2011h2v2h-2zM10%2013h2v2h-2zM11%209h2v2h-2zM13%207h2v2h-2zM15%205h2v2h-2zM17%203h2v2h-2zM2%2017h16v1h-16z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="signature"]:hover::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M2%2013h2v2h-2zM4%2011h2v2h-2zM6%2013h2v2h-2zM8%2011h2v2h-2zM10%2013h2v2h-2zM11%209h2v2h-2zM13%207h2v2h-2zM15%205h2v2h-2zM17%203h2v2h-2zM2%2017h16v1h-16z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="meet"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M2%204h16v2h-16zM2%2016h16v2h-16zM2%204h2v14h-2zM16%204h2v14h-2zM6%202h2v3h-2zM12%202h2v3h-2zM6%208h2v2h-2zM9%208h2v2h-2zM12%208h2v2h-2zM6%2011h2v2h-2zM9%2011h2v2h-2z%27%20fill%3D%27%230d2412%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="meet"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M2%204h16v2h-16zM2%2016h16v2h-16zM2%204h2v14h-2zM16%204h2v14h-2zM6%202h2v3h-2zM12%202h2v3h-2zM6%208h2v2h-2zM9%208h2v2h-2zM12%208h2v2h-2zM6%2011h2v2h-2zM9%2011h2v2h-2z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="meet"]:hover::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M2%204h16v2h-16zM2%2016h16v2h-16zM2%204h2v14h-2zM16%204h2v14h-2zM6%202h2v3h-2zM12%202h2v3h-2zM6%208h2v2h-2zM9%208h2v2h-2zM12%208h2v2h-2zM6%2011h2v2h-2zM9%2011h2v2h-2z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="more"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M8%202h4v4h-4zM8%208h4v4h-4zM8%2014h4v4h-4z%27%20fill%3D%27%230d2412%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="more"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M8%202h4v4h-4zM8%208h4v4h-4zM8%2014h4v4h-4z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="more"]:hover::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M8%202h4v4h-4zM8%208h4v4h-4zM8%2014h4v4h-4z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="trash"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M3%204h14v2h-14zM7%202h6v2h-6zM4%207h2v11h-2zM14%207h2v11h-2zM4%2016h12v2h-12zM8%208h1v7h-1zM11%208h1v7h-1z%27%20fill%3D%27%230d2412%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box[data-ir-theme="dark"] [data-ir-icon="trash"]::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M3%204h14v2h-14zM7%202h6v2h-6zM4%207h2v11h-2zM14%207h2v11h-2zM4%2016h12v2h-12zM8%208h1v7h-1zM11%208h1v7h-1z%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E"); }
+.ir-active-box [data-ir-icon="trash"]:hover::after { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M3%204h14v2h-14zM7%202h6v2h-6zM4%207h2v11h-2zM14%207h2v11h-2zM4%2016h12v2h-12zM8%208h1v7h-1zM11%208h1v7h-1z%27%20fill%3D%27%23d9ffe0%27%2F%3E%3C%2Fsvg%3E"); }
+
+/* Cursors: pixel stepped, black glass with a phosphor edge; the hand is the same arrow lit up */
+.ir-active-box, .ir-active-box * { cursor: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2721%27%20height%3D%2732%27%20viewBox%3D%270%200%2021%2032%27%20shape-rendering%3D%27crispEdges%27%3E%3Crect%20x%3D%270%27%20y%3D%270%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%271.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%273%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%270%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%270%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%271.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%274.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%271.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%273%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%273%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%274.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%274.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2718%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2718%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2718%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2719.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2719.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2719.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2728.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2728.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2728.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2728.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2730%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2730%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2730%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2730%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%271.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%273%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%273%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%274.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%274.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%274.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2718%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23020a04%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2728.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2728.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3C%2Fsvg%3E") 2 2, default; }
+.ir-active-box [role="button"], .ir-active-box button:not(:disabled), .ir-active-box a, .ir-active-box [role="link"], .ir-active-box [role="option"], .ir-active-box [role="listbox"], .ir-active-box [data-ir-icon], .ir-active-box .ir-pin { cursor: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2721%27%20height%3D%2732%27%20viewBox%3D%270%200%2021%2032%27%20shape-rendering%3D%27crispEdges%27%3E%3Crect%20x%3D%270%27%20y%3D%270%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%271.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%273%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%270%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%270%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%271.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%274.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%271.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%273%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%273%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%274.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%274.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2718%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2718%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2718%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2719.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2719.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2719.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2728.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2728.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2728.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2728.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2730%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2730%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2730%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2730%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23fff%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%271.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%273%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%273%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%274.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%274.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%274.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%276%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%277.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%279%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2710.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2712%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2713.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2715%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2716.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2716.5%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2718%27%20y%3D%2718%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2719.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%276%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%277.5%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2721%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%274.5%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2722.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%279%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2724%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%271.5%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2725.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2710.5%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%2300ff41%27%2F%3E%3Crect%20x%3D%2715%27%20y%3D%2727%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2712%27%20y%3D%2728.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3Crect%20x%3D%2713.5%27%20y%3D%2728.5%27%20width%3D%271.5%27%20height%3D%271.5%27%20fill%3D%27%23000%27%2F%3E%3C%2Fsvg%3E") 2 2, pointer; }
+.ir-active-box input, .ir-active-box textarea, .ir-active-box [contenteditable="true"][role="textbox"] { cursor: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2726%27%20height%3D%2726%27%20viewBox%3D%270%200%2026%2026%27%20shape-rendering%3D%27crispEdges%27%3E%3Cpath%20d%3D%27M7%203h12v3h-4v14h4v3H7v-3h4V6H7z%27%20fill%3D%27none%27%20stroke%3D%27%23000%27%20stroke-width%3D%273%27%2F%3E%3Cpath%20d%3D%27M7%203h12v3h-4v14h4v3H7v-3h4V6H7z%27%20fill%3D%27%2300ff41%27%20stroke%3D%27%23020a04%27%20stroke-width%3D%271%27%2F%3E%3C%2Fsvg%3E") 13 13, text; }
+.ir-active-box [contenteditable="true"][role="textbox"] * { cursor: inherit; }
+
+/* Caret and selection */
+.ir-active-box [contenteditable="true"][role="textbox"] { caret-color: var(--mx-mid); }
+.ir-active-box[data-ir-theme="dark"] [contenteditable="true"][role="textbox"] { caret-color: var(--mx-ph); }
+.ir-active-box [contenteditable="true"][role="textbox"]::selection, .ir-active-box [contenteditable="true"][role="textbox"] ::selection { background: #009e2a; color: #000; }
+
+/* Avatar: the residual self image, coded green until you hover it */
+.ir-active-box [data-ir-avatar] { border-radius: 2px !important; filter: grayscale(1) sepia(1) hue-rotate(65deg) saturate(3.4) brightness(.85) contrast(1.15);
+  box-shadow: 0 0 0 1px #000, 0 0 0 3px #00ff41, 0 0 14px rgba(0, 255, 65, .6); transition: filter .35s; }
+.ir-active-box [data-ir-avatar-wrap]:hover [data-ir-avatar] { filter: none; }
+
+/* Comments: shared blue, square, monospace */
+::highlight(ir-comment) { background-color: rgba(43, 108, 255, .18); text-decoration: underline 1px #2b6cff; }
+.ir-pin { min-width: 18px; height: 18px; padding: 0 4px; border: 0; border-radius: 0; background: #2b6cff; color: #fff;
+  font: 13px/18px "IR OCR", ui-monospace, monospace; box-shadow: 0 0 6px rgba(43, 108, 255, .65); transition: transform .12s, box-shadow .12s; }
+.ir-pin:hover { transform: translateY(-1px); box-shadow: 0 0 12px rgba(43, 108, 255, .9); }
+.ir-pin.ir-stale { background: #8d8a93; box-shadow: none; }
+.ir-note { padding: 10px 12px; border: 1px solid #00ff41; border-radius: 0; color: #d9ffe0;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .24) 0 1px, transparent 1px 3px), #020a04; box-shadow: 0 0 8px rgba(0, 255, 65, .55); }
+.ir-note-hint { font: 11px "IR OCR", ui-monospace, monospace; color: #1fbf4c; }
+.ir-note-delete { padding: 3px 9px; border: 1px solid #00ff41; border-radius: 0; background: transparent; color: #00ff41; font: 12px "IR OCR", ui-monospace, monospace; }
+.ir-note-delete:hover { background: #00ff41; color: #000; }
+
+/* The pills: blue while off, red once you take it (B swaps them for an LED) */
+.ir-toggle .ir-dot { display: inline-block; position: relative; width: 24px; height: 11px; margin-right: 9px; border-radius: 6px; vertical-align: -1px; transform: rotate(-18deg);
+  background: linear-gradient(180deg, #b3ccff 0%, #3f78ff 36%, #1446c8 70%, #0a2780 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .5), inset 0 -1px 1px rgba(255, 255, 255, .3); transition: transform .15s; }
+.ir-toggle .ir-dot::after { content: ""; position: absolute; left: 4px; top: 2px; width: 9px; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .75); }
+.ir-toggle:hover .ir-dot { transform: rotate(-8deg) translateY(-1px); }
+.ir-toggle[data-active="true"] .ir-dot { transform: rotate(18deg); background: linear-gradient(180deg, #ffb0b0 0%, #ff3346 36%, #c40d22 70%, #6e0410 100%); }
+.ir-active-box[data-ir-layout="window"] .ir-toggle { font-size: 0; width: 34px; padding: 0; justify-content: center; }
+.ir-active-box[data-ir-layout="window"] .ir-toggle .ir-dot { margin: 0; }
+
+/* Buttons: Shell. VT323 capitals behind a dim $ prompt; hover turns the $ into > with a blinking block,
+   press sends the line forward like Enter. The label lives in .mx-lbl (wrapped by the ornament) so it
+   can decode on hover. */
+.mx-lbl { display: inline-block; }
+.ir-toggle, .ir-refactor { font: 23px/1 "IR Terminal", "VT323", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
+.ir-toggle { display: inline-flex; align-items: center; height: 30px; padding: 0 8px 0 6px; border: 0; border-bottom: 1px dashed rgba(0, 158, 42, .7); border-radius: 0;
+  background: transparent; color: #0d2412; font-size: 18px; transition: color .12s, border-color .12s; }
+.pv-dark .ir-toggle, .ir-active-box[data-ir-theme="dark"] .ir-toggle { color: #00ff41; border-bottom-color: rgba(0, 255, 65, .7); }
+.ir-toggle:hover { color: #009e2a; border-bottom-style: solid; }
+.ir-toggle[data-active="true"] { color: #009e2a; border-bottom: 1px solid #009e2a; }
+.pv-dark .ir-toggle:hover, .ir-active-box[data-ir-theme="dark"] .ir-toggle:hover, .ir-active-box[data-ir-theme="dark"] .ir-toggle[data-active="true"] { color: #00ff41; border-bottom-color: #00ff41; }
+.ir-toggle:focus-visible { outline: 2px solid #009e2a; outline-offset: 2px; }
+
+.ir-refactor { position: relative; display: inline-flex; align-items: center; height: 36px; padding: 0 10px; margin-left: 10px; border: 0; border-radius: 0; background: transparent;
+  border-bottom: 1px dashed color-mix(in srgb, var(--mx-line, #009e2a) 70%, transparent); color: var(--mx-edge, #0d2412); transition: color .12s, border-color .12s, transform .05s; }
+.ir-refactor::before { content: "$"; margin-right: .35em; color: color-mix(in srgb, var(--mx-line, #009e2a) 55%, transparent); }
+.ir-refactor::after { content: ""; width: .5em; height: .85em; margin-left: .15em; background: currentColor; opacity: 0; }
+.ir-refactor:hover:not(:disabled) { color: var(--mx-line); border-bottom-style: solid; }
+.ir-refactor:hover:not(:disabled)::before { content: ">"; color: var(--mx-line); }
+.ir-refactor:hover:not(:disabled)::after { opacity: 1; animation: mx-blink 1.06s steps(1) infinite; }
+.ir-refactor:active:not(:disabled) { transform: translateX(3px); color: var(--mx-hot); border-bottom: 2px solid var(--mx-hot); transition-duration: .04s; }
+.ir-refactor:disabled::before { content: ">"; color: var(--mx-line); animation: mx-blink .5s steps(1) infinite; }
+.ir-refactor:focus-visible { outline: 2px solid #009e2a; outline-offset: 2px; }
+
+.ir-active-box .dC .T-I { background: transparent !important; color: var(--mx-edge) !important; border-radius: 0 !important; box-shadow: none !important;
+  border-bottom: 1px dashed color-mix(in srgb, var(--mx-line) 70%, transparent) !important; font: 22px/1 var(--mx-title) !important; letter-spacing: .08em; text-transform: uppercase;
+  transition: color .12s, transform .05s; }
+.ir-active-box .dC .aoO { padding: 0 10px !important; }
+.ir-active-box .dC .aoO::before { content: "$"; margin-right: .35em; color: color-mix(in srgb, var(--mx-line) 55%, transparent); }
+.ir-active-box .dC .aoO::after { content: ""; width: .5em; height: .85em; margin-left: .15em; background: currentColor; opacity: 0; }
+.ir-active-box .dC .hG { margin-left: 6px; padding: 0 8px !important; border-left: 0 !important; }
+.ir-active-box .dC .T-I:hover { color: var(--mx-line) !important; border-bottom-style: solid !important; }
+.ir-active-box .dC .aoO:hover::before { content: ">"; color: var(--mx-line); }
+.ir-active-box .dC .aoO:hover::after { opacity: 1; animation: mx-blink 1.06s steps(1) infinite; }
+.ir-active-box .dC .T-I:active { transform: translateX(3px); color: var(--mx-hot) !important; border-bottom: 2px solid var(--mx-hot) !important; }
+.ir-active-box .dC .T-I:focus-visible { outline: 2px solid #009e2a; outline-offset: 2px; }
+/* Light cards: Send is the one real key, so it stands apart from Refactor's bare shell line */
+.ir-active-box:not([data-ir-theme="dark"]) .dC .T-I { height: 34px; background-color: color-mix(in srgb, #009e2a 10%, var(--ir-paper, #fff)) !important; border: 1px solid rgba(0, 158, 42, .55) !important; border-radius: 2px !important;
+  box-shadow: 0 2px 0 rgba(0, 158, 42, .3), inset 0 1px 0 rgba(255, 255, 255, .7) !important; }
+.ir-active-box:not([data-ir-theme="dark"]) .dC .aoO { padding: 0 12px !important; border-right: 0 !important; border-radius: 2px 0 0 2px !important; }
+.ir-active-box:not([data-ir-theme="dark"]) .dC .hG { margin-left: 0; border-left: 1px solid rgba(0, 158, 42, .35) !important; border-radius: 0 2px 2px 0 !important; }
+.ir-active-box:not([data-ir-theme="dark"]) .dC .T-I:hover { background-color: color-mix(in srgb, #009e2a 18%, var(--ir-paper, #fff)) !important; border-color: #009e2a !important; border-bottom-style: solid !important; }
+.ir-active-box:not([data-ir-theme="dark"]) .dC .T-I:active { transform: translateY(2px); box-shadow: none !important; background-color: color-mix(in srgb, #009e2a 26%, var(--ir-paper, #fff)) !important; color: var(--mx-hot) !important; border-bottom: 1px solid #009e2a !important; }
+.ir-active-box[data-ir-layout="window"] .ir-refactor { font-size: 18px; padding: 0 6px; margin-left: 8px; }
+.ir-active-box[data-ir-layout="window"] .dC .T-I { font-size: 18px !important; }
+.ir-active-box[data-ir-layout="window"] .dC .aoO { padding: 0 6px !important; }
+.ir-active-box[data-ir-layout="window"] .dC .hG { margin-left: 3px; padding: 0 5px !important; }
+
+/* Swoosh layers */
+.mx-ghost .mx-w { white-space: nowrap; }
+.mx-ghost .mx-c { display: inline-block; text-align: center; }
+.mx-ghost .mx-c.hot { color: var(--mx-code); text-shadow: 0 0 6px rgba(0, 255, 65, .75); transform: scaleX(-1); }
+.mx-ghost.mx-seen .mx-c { color: var(--mx-code); transition: color .22s; }
+.mx-dec .mx-c { visibility: hidden; }
+.mx-dec .mx-c.on { visibility: visible; color: var(--mx-code); text-shadow: 0 0 5px rgba(0, 255, 65, .65); transform: scaleX(-1); }
+.mx-dec .mx-c.locked { visibility: visible; color: inherit; text-shadow: none; transform: none; animation: mx-lock .45s ease-out; }
+.mx-readhead { position: absolute; height: 2px; background: linear-gradient(90deg, rgba(0, 255, 65, 0), #00ff41 45%, #d9ffe0); box-shadow: 0 0 8px rgba(0, 255, 65, .7); pointer-events: none; }
+.mx-readhead::after { content: ""; position: absolute; right: -10px; bottom: 0; width: 7px; height: 15px; background: #00ff41; box-shadow: 0 0 6px rgba(0, 255, 65, .7); opacity: .85; }
+.ir-active-box.mx-thinking .ir-skin > .sk-edge { animation: mx-breathe 1.2s ease-in-out infinite; }
+.mx-plate { position: absolute; top: 4px; right: 6px; display: flex; align-items: center; gap: 2px; padding: 5px 10px; border: 1px solid #00ff41; color: #00ff41;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .24) 0 1px, transparent 1px 3px), #020a04; box-shadow: 0 0 8px rgba(0, 255, 65, .6);
+  font: 30px/1 "IR Terminal", "VT323", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; text-shadow: 0 0 8px rgba(0, 255, 65, .8); transition: opacity .5s, border-color .5s; }
+.mx-plate { opacity: 0; transition: opacity .2s; }
+.mx-plate.show { opacity: 1; }
+.mx-plate.gone { opacity: 0; transition: opacity .5s; }
+.mx-plate .nc { display: inline-block; width: .55em; text-align: center; }
+.mx-plate .nc.on { transform: scaleX(-1); opacity: .8; }
+
+@keyframes mx-blink { 50% { opacity: 0; } }
+@keyframes mx-drop { 0% { opacity: 1; background-position: 8px -16px, 16px -36px, 24px -12px; } 100% { opacity: .9; background-position: 8px 34px, 16px 34px, 24px 40px; } }
+@keyframes mx-derez { 0% { clip-path: inset(0 0 60% 0); transform: translateX(-3px); } 25% { clip-path: inset(40% 0 20% 0); transform: translateX(3px); }
+  50% { clip-path: inset(70% 0 0 0); transform: translateX(-2px); } 100% { clip-path: inset(0); transform: none; } }
+@keyframes mx-lock { from { color: var(--mx-code); text-shadow: 0 0 9px #00ff41; } }
+@keyframes mx-breathe { 50% { filter: brightness(1.7) drop-shadow(0 0 6px #00ff41); } }
+@keyframes mx-wipe { from { clip-path: inset(-30px 100% -30px -30px); } to { clip-path: inset(-30px -30px -30px -30px); } }
+@keyframes mx-pop { from { transform: scale(0); } to { transform: scale(1); } }
+@keyframes mx-power { 0% { opacity: 0; filter: brightness(3); } 30% { opacity: 1; } 100% { opacity: 1; filter: none; } }
+@keyframes mx-sheen { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
+</style>
+
+<style id="frame-hud">
+/* HUD (modern): the top left and bottom right corners cut at 45 degrees, a thin line, bright segments
+   after each cut, tick marks above the top right and beside the bottom left */
+.ir-skin { --mx-clip: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px); }
+.ir-skin > .sk-edge { display: block; position: absolute; inset: -1px; z-index: 0; background: color-mix(in srgb, var(--mx-line) 60%, transparent);
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px); }
+.ir-skin > .sk-tl, .ir-skin > .sk-br { display: block; position: absolute; z-index: 3; width: 72px; height: 3px; background: var(--mx-line); box-shadow: 0 0 6px rgba(0, 255, 65, .6); }
+.ir-skin > .sk-tl { top: -2px; left: 15px; }
+.ir-skin > .sk-br { bottom: -2px; right: 15px; }
+.ir-skin > .sk-tr { display: block; position: absolute; z-index: 3; top: -7px; right: 0; width: 132px; height: 3px; background: repeating-linear-gradient(90deg, var(--mx-line) 0 2px, transparent 2px 8px); }
+.ir-skin > .sk-bl { display: block; position: absolute; z-index: 3; left: -7px; bottom: 26px; width: 3px; height: 64px; background: repeating-linear-gradient(0deg, var(--mx-line) 0 2px, transparent 2px 8px); }
+</style>
+
+</head>
+<body>
+<script src="../kit/mockup-kit.js"></script>
+<script>
+(function () {
+  "use strict";
+  const KANA = "ｦｧｨｩｪｫｬｭｮｯｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ012345789Z:.=*+-<>¦";
+  const ASCII = "0123456789#$%&*+=<>/\\|";
+  const GLASS = "#020a04";
+  const FONT = '"IR OCR","Hiragino Sans","Yu Gothic","MS Gothic",monospace';
+  const pickK = () => KANA[(Math.random() * KANA.length) | 0];
+  const pickA = () => ASCII[(Math.random() * ASCII.length) | 0];
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const frame = () => new Promise((r) => requestAnimationFrame(r));
+  const clamp = (v) => Math.max(0, Math.min(1, v));
+  const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const TUNE = [
+    { name: "rainSpeed", label: "Rain speed (rows per second)", min: 6, max: 40, step: 1, value: 16 },
+    { name: "rainAlpha", label: "Rain strength (how visible on the card)", min: 0.03, max: 0.5, step: 0.01, value: 0.14 },
+    { name: "idleSpeed", label: "Rain at rest (0 = still)", min: 0, max: 1, step: 0.05, value: 0.3 },
+    { name: "freezeMs", label: "Bullet time: how fast the rain stops (ms)", min: 150, max: 2000, step: 50, value: 550 },
+    { name: "readCps", label: "Before: reading speed (characters per second)", min: 10, max: 120, step: 2, value: 36 },
+    { name: "fallMs", label: "During: rain and letters fall in (ms)", min: 350, max: 1600, step: 25, value: 750 },
+    { name: "lockMs", label: "During: how long letters jumble before they lock (ms)", min: 100, max: 2000, step: 25, value: 700 },
+  ];
+  // The ornament runs outside the swoosh, so it reads the sliders from the kit's saved state.
+  let tuneCache = null, tuneAt = 0;
+  function tuneNow() {
+    const now = performance.now();
+    if (tuneCache && now - tuneAt < 400) return tuneCache;
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem("mockup-kit:" + location.pathname) || "{}").tune || {}; } catch (e) { /* storage off */ }
+    tuneCache = Object.fromEntries(TUNE.map((t) => [t.name, t.name in saved ? saved[t.name] : t.value]));
+    tuneAt = now;
+    return tuneCache;
+  }
+
+  function glyphAt(g, ch, x, y, size, fill, blur) {
+    g.save();
+    g.translate(x, y);
+    g.scale(-1, 1);
+    g.font = `${size}px ${FONT}`;
+    g.textAlign = "center";
+    g.textBaseline = "top";
+    g.fillStyle = fill;
+    g.shadowColor = "rgba(0,255,65,.9)";
+    g.shadowBlur = blur;
+    g.fillText(ch, 0, 0);
+    g.restore();
+  }
+
+  // --- the rain behind the card: answers typing, then slows to a stop (bullet time) ---------------------
+  class Rain {
+    // Faint rain on the card itself: no black, every frame drawn fresh so the paper shows through.
+    // Each column is a stream with a brighter head and a trail that fades; glyphs sit in a fixed grid and
+    // change now and then while the rain moves. When it stops, the last frame stays (bullet time).
+    constructor(cv, box) { this.cv = cv; this.box = box; this.g = cv.getContext("2d"); this.e = 0; this.holdUntil = 0; this.tau = 550; this.raf = 0; this.w = 0; this.cell = 13; }
+    size() {
+      const r = this.cv.getBoundingClientRect();
+      if (!r.width || !r.height) return false;
+      const d = devicePixelRatio || 1;
+      this.w = r.width; this.h = r.height;
+      this.cv.width = Math.round(r.width * d); this.cv.height = Math.round(r.height * d);
+      this.g.setTransform(d, 0, 0, d, 0, 0);
+      this.cols = Math.ceil(this.w / this.cell); this.rows = Math.ceil(this.h / this.cell);
+      this.grid = Array.from({ length: this.cols * this.rows }, pickK);
+      this.drops = Array.from({ length: this.cols }, () => this.drop(true));
+      return true;
+    }
+    resizeIfNeeded() {
+      const r = this.cv.getBoundingClientRect();
+      if (Math.abs(r.width - this.w) > 2 || Math.abs(r.height - this.h) > 2) if (this.size()) this.prewarm();
+    }
+    drop(anywhere) {
+      return { y: anywhere ? Math.random() * this.rows * 1.5 : -Math.random() * this.rows * 0.8, v: 0.55 + Math.random() * 0.8, len: 6 + ((Math.random() * 12) | 0) };
+    }
+    draw() {
+      const g = this.g, s = this.cell, a = tuneNow().rainAlpha, dark = this.box.dataset.irTheme === "dark";
+      g.clearRect(0, 0, this.w, this.h);
+      for (let i = 0; i < this.cols; i++) {
+        const d = this.drops[i], head = Math.floor(d.y);
+        for (let k = 0; k < d.len; k++) {
+          const row = head - k;
+          if (row < 0 || row >= this.rows) continue;
+          const al = k === 0 ? Math.min(1, a * 1.8) : a * (1 - k / d.len);
+          const fill = dark ? (k === 0 ? `rgba(217,255,224,${al})` : `rgba(0,255,65,${al})`) : (k === 0 ? `rgba(0,110,28,${al})` : `rgba(0,158,42,${al})`);
+          glyphAt(g, this.grid[i * this.rows + row], i * s + s / 2, row * s, s, fill, 0);
+        }
+      }
+    }
+    tick(dt) {
+      const e = this.e, speed = tuneNow().rainSpeed;
+      for (const d of this.drops) {
+        d.y += d.v * e * speed * dt / 1000;
+        if (d.y - d.len > this.rows) Object.assign(d, this.drop(false));
+      }
+      for (let n = Math.round(6 * e); n > 0; n--) this.grid[(Math.random() * this.grid.length) | 0] = pickK();
+    }
+    prewarm() { this.e = 1; for (let k = 0; k < 80; k++) this.tick(16); this.e = 0; this.draw(); }
+    loop() {
+      if (this.raf || this.frozen) return;
+      let last = performance.now();
+      const f = (now) => {
+        if (!this.cv.isConnected || this.frozen) { this.raf = 0; return; }
+        const dt = Math.min(50, now - last), idle = reduced() ? 0 : tuneNow().idleSpeed;
+        last = now;
+        // Settles to a light loop at rest (idleSpeed), or to a still frame when that is 0.
+        if (now > this.holdUntil) this.e = idle + (this.e - idle) * Math.exp(-dt / this.tau);
+        if (idle === 0 && this.e < 0.03) { this.e = 0; this.raf = 0; return; }
+        this.tick(dt);
+        this.draw();
+        this.raf = requestAnimationFrame(f);
+      };
+      this.raf = requestAnimationFrame(f);
+    }
+    kick(level, holdMs = 0) {
+      if (reduced() || !this.w || this.frozen) return;
+      this.e = Math.max(this.e, level);
+      this.holdUntil = performance.now() + holdMs;
+      this.tau = tuneNow().freezeMs;
+      this.loop();
+    }
+    holdOn(level) { if (reduced() || !this.w) return; this.frozen = false; this.e = level; this.holdUntil = Infinity; this.loop(); }
+    /** Back to the light loop. */
+    release() { this.frozen = false; this.holdUntil = 0; this.tau = tuneNow().freezeMs; if (!reduced() && this.w) this.loop(); }
+    /** Bullet time: stops dead and stays until released. */
+    freeze() { this.frozen = true; this.e = 0; this.holdUntil = 0; cancelAnimationFrame(this.raf); this.raf = 0; }
+    spawn(x) {
+      if (!this.w) return;
+      const i = Math.max(0, Math.min(this.cols - 1, Math.floor(x / this.cell)));
+      Object.assign(this.drops[i], { y: 0, v: 1.7 });
+    }
+    boot() {
+      // Wake up: the still frame starts pouring, then slows to a stop.
+      if (reduced()) return;
+      this.kick(1.2, 600);
+    }
+  }
+
+  // A seeded random, so the still pieces look the same on every redraw.
+  const seeded = (n) => () => ((n = Math.imul(n ^ (n >>> 15), 2246822507) + 0x6d2b79f5 | 0) >>> 0) / 4294967296;
+
+  /** The rule: a plain glowing hairline under the To line. */
+  function drawStream(cv, box) {
+    if (!cv) return;
+    const r = cv.getBoundingClientRect();
+    if (!r.width || cv.__w === r.width) return;
+    cv.__w = r.width;
+    const d = devicePixelRatio || 1, g = cv.getContext("2d"), dark = box.dataset.irTheme === "dark";
+    cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d);
+    g.setTransform(d, 0, 0, d, 0, 0);
+    g.fillStyle = dark ? "#00ff41" : "#009e2a";
+    g.shadowColor = "rgba(0,255,65,.8)"; g.shadowBlur = 5;
+    g.fillRect(0, r.height - 1.5, r.width, 1.5);
+  }
+
+  /** The band: faint still rain. */
+  function drawBand(cv) {
+    if (!cv) return;
+    const r = cv.getBoundingClientRect();
+    if (!r.width || cv.__w === r.width) return;
+    cv.__w = r.width;
+    const d = devicePixelRatio || 1, g = cv.getContext("2d");
+    cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d);
+    g.setTransform(d, 0, 0, d, 0, 0);
+    const rnd = seeded(11);
+    for (let x = 0; x < r.width; x += 11) {
+      const len = 1 + ((rnd() * 4) | 0), top = ((rnd() * 4) | 0) * 10;
+      for (let k = 0; k < len; k++) glyphAt(g, KANA[(rnd() * KANA.length) | 0], x + 5, top + k * 10, 10, k === len - 1 ? "rgba(217,255,224,.55)" : `rgba(0,255,65,${0.12 + k * 0.06})`, k === len - 1 ? 5 : 0);
+    }
+  }
+
+  // --- title type: a label's text lives in span.mx-lbl, whose data-t feeds the two sliced halves --------
+  const SLICED = ".ir-refactor, .dC .aoO, .ir-toggle";
+  function label(el) {
+    let span = el.querySelector(":scope > .mx-lbl");
+    if (span) return span;
+    const text = [...el.childNodes].filter((n) => n.nodeType === 3 && n.data.trim());
+    if (!text.length) return null;
+    span = document.createElement("span");
+    span.className = "mx-lbl";
+    span.textContent = span.dataset.t = text.map((n) => n.data.trim()).join(" ");
+    text[0].replaceWith(span);
+    text.slice(1).forEach((n) => n.remove());
+    return span;
+  }
+  const setLabel = (span, text) => { span.textContent = text; span.dataset.t = text; };
+  /** Wraps a label now and again whenever someone replaces its text (Gmail, gmail.ts, the kit). */
+  function keepSliced(el) {
+    label(el);
+    new MutationObserver(() => label(el)).observe(el, { childList: true });
+  }
+
+  /** Labels decode on hover: each letter scrambles, then locks, left to right. The width is held still. */
+  const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const pickL = () => LETTERS[(Math.random() * LETTERS.length) | 0];
+  function scramble(el, ms) {
+    const span = label(el);
+    if (!span || span.__scr || el.disabled) return;
+    const word = span.dataset.t;
+    span.__scr = true;
+    span.style.minWidth = span.getBoundingClientRect().width + "px";
+    const t0 = performance.now();
+    const f = (now) => {
+      if (el.disabled || !span.isConnected) { span.__scr = false; span.style.minWidth = ""; return; }
+      const p = (now - t0) / ms;
+      let out = "";
+      for (let i = 0; i < word.length; i++) out += i < p * word.length || word[i] === " " ? word[i] : pickL();
+      setLabel(span, out);
+      if (p < 1) requestAnimationFrame(f);
+      else { setLabel(span, word); span.__scr = false; span.style.minWidth = ""; }
+    };
+    requestAnimationFrame(f);
+  }
+
+  /** Refactor's label while the model thinks: a trace, letters locking into place one by one, again and again. */
+  function trace(el) {
+    const span = label(el);
+    if (!span) return () => {};
+    const word = span.dataset.t;
+    span.style.minWidth = span.getBoundingClientRect().width + "px";
+    let locked = 0, tick = 0, hold = 0;
+    const iv = setInterval(() => {
+      if (hold > 0) hold--;
+      else if (++tick % 3 === 0 && ++locked > word.length) { hold = 10; locked = 0; }
+      let out = "";
+      for (let i = 0; i < word.length; i++) out += i < locked || hold > 0 ? word[i] : pickL();
+      if (span.isConnected) setLabel(span, out);
+    }, 45);
+    return () => { clearInterval(iv); if (span.isConnected) { setLabel(span, word); span.style.minWidth = ""; } };
+  }
+
+  // --- text as code: every letter of a copy in its own fixed width box ---------------------------------
+  function spanify(root) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const n of nodes) {
+      const frag = document.createDocumentFragment();
+      for (const part of n.data.split(/(\s+)/)) {
+        if (!part) continue;
+        if (/^\s+$/.test(part)) { frag.append(part); continue; }
+        const w = document.createElement("span");
+        w.className = "mx-w";
+        for (const ch of part) {
+          const c = document.createElement("span");
+          c.className = "mx-c"; c.dataset.ch = ch; c.textContent = ch;
+          w.append(c);
+        }
+        frag.append(w);
+      }
+      n.replaceWith(frag);
+    }
+    const cs = [...root.querySelectorAll(".mx-c")];
+    const widths = cs.map((c) => c.getBoundingClientRect().width);
+    cs.forEach((c, i) => (c.style.width = widths[i] + "px"));
+    return cs;
+  }
+
+  // --- the swoosh: S1 trace before, D1 rain decodes during (picked 2026-10-01) ---
+  const flip = (c) => { c.textContent = pickK(); c.classList.add("hot"); };
+  const unflip = (c) => { c.textContent = c.dataset.ch; c.classList.remove("hot"); };
+
+  // Before: a long read head (ten letters, fading behind) under the text; each letter turns to code as it passes
+  function trace1(ghost, cs, T) {
+    const head = document.createElement("i");
+    head.className = "mx-readhead";
+    ghost.append(head);
+    const hot = [];
+    let i = 0, pause = 0;
+    const iv = setInterval(() => {
+      if (pause > 0) { pause--; return; }
+      while (hot.length && hot[0].until <= i) unflip(hot.shift().c);
+      if (i < cs.length) {
+        const c = cs[i], gr = ghost.getBoundingClientRect(), r = c.getBoundingClientRect();
+        flip(c);
+        hot.push({ c, until: i + 8 });
+        Object.assign(head.style, { left: `${Math.max(0, r.right - gr.left - r.width * 10)}px`, top: `${r.bottom - gr.top}px`, width: `${Math.min(r.right - gr.left, r.width * 10)}px` });
+      }
+      if (++i >= cs.length + 6) { i = 0; pause = 14; }
+    }, 1000 / T.readCps);
+    return () => clearInterval(iv);
+  }
+
+  /** The old text falling apart: each letter turns to code and drops, starting from the left. */
+  function fallingParts(old, origin) {
+    return old.map((c) => {
+      const r = c.getBoundingClientRect();
+      return { x: r.left - origin.left + r.width / 2, y: r.top - origin.top, ch: c.dataset.ch, d: (r.left - origin.left) / origin.width * 240 + Math.random() * 260,
+        vx: (Math.random() - 0.5) * 30, vy: -Math.random() * 80, g: pickK(), t: 0 };
+    });
+  }
+  function drawFalling(g, parts, t, now, font, code) {
+    let alive = false;
+    for (const p of parts) {
+      if (t < p.d) { g.font = font; g.fillStyle = code; g.textAlign = "center"; g.textBaseline = "top"; g.fillText(p.ch, p.x, p.y); alive = true; continue; }
+      const a = (t - p.d) / 1000;
+      if (a > 0.9) continue;
+      alive = true;
+      if (now > p.t) { p.g = pickK(); p.t = now + 70; }
+      g.globalAlpha = 1 - a / 0.9;
+      glyphAt(g, p.g, p.x + p.vx * a, p.y + p.vy * a + 1400 * a * a, 13, "#00ff41", 6);
+      g.globalAlpha = 1;
+    }
+    return alive;
+  }
+  /** A falling stream: a white head and a trail fading behind it. */
+  function stream(g, glyphs, x, head, n, H, trail) {
+    for (let k = 0; k < n; k++) {
+      const y = head - k * 15;
+      if (y < -15 || y > H) continue;
+      const al = 1 - k / n;
+      glyphAt(g, glyphs[k % glyphs.length], x, y, 13, k === 0 ? "#e6ffe9" : `rgba(0,${Math.round(150 + 105 * al)},${Math.round(45 * al)},${al * trail})`, k === 0 ? 9 : 2);
+    }
+  }
+  // Decoding letters cycle through code, capitals and digits before they lock; about a third glitch
+  // once more just after locking.
+  const MIXED = KANA + "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789#$%&@";
+  const pickM = () => MIXED[(Math.random() * MIXED.length) | 0];
+  const lockLetter = (d, t, T) => {
+    if (d.rev >= 0) return;
+    d.rev = t;
+    d.lock = t + T.lockMs * (0.8 + Math.random());
+    d.re = Math.random() < 0.35 ? d.lock + 80 + Math.random() * 420 : -1;
+    d.c.classList.add("on");
+  };
+  /** Advances one decoding letter; returns true once it is locked for good. */
+  function stepLetter(d, t) {
+    if (d.rev < 0) return false;
+    if (t < d.lock) { if (Math.random() < 0.6) d.c.textContent = pickM(); return false; }
+    if (d.re > 0 && t >= d.re && t < d.re + 130) { d.c.classList.remove("locked"); if (Math.random() < 0.6) d.c.textContent = pickM(); return false; }
+    if (!d.c.classList.contains("locked")) { d.c.textContent = d.c.dataset.ch; d.c.classList.add("locked"); }
+    return !(d.re > 0 && t < d.re + 130);
+  }
+
+  // During: rain streams down the paper (no black); a letter decodes when the stream in its column passes it
+  function rainDecode(env) {
+    const { W, H, T, chars } = env, COL = 14, cols = [];
+    for (let x = 0; x < W; x += COL) cols.push({ x, delay: 260 + Math.random() * 380, fall: T.fallMs * (0.8 + Math.random() * 0.45), glyphs: Array.from({ length: 14 }, pickK), next: 0 });
+    return (g, t, now) => {
+      let busy = false;
+      for (const col of cols) {
+        const pr = (t - col.delay) / col.fall, head = pr * (H + 220);
+        if (pr < 0) { busy = true; continue; }
+        if (head - 14 * 15 < H) busy = true;
+        if (now > col.next) { col.glyphs = Array.from({ length: 14 }, pickK); col.next = now + 60 + Math.random() * 70; }
+        stream(g, col.glyphs, col.x + COL / 2, head, 14, H, 0.85);
+        col.head = head;
+      }
+      let locked = true;
+      for (const d of chars) {
+        const col = cols[Math.min(cols.length - 1, Math.floor(d.x / COL))];
+        if ((col.head || -1) >= d.y) lockLetter(d, t, T);
+        if (!stepLetter(d, t)) locked = false;
+      }
+      return busy || !locked;
+    };
+  }
+
+  const swoosh = {
+    // Before: the rain pours, the trace reads the old text, and the label traces.
+    before(ctx) {
+      const T = ctx.tune, box = ctx.host, mx = box.__mx;
+      if (mx) mx.rain.holdOn(1.5);
+      box.classList.add("mx-thinking");
+      const btn = box.querySelector(".ir-refactor");
+      const stopTrace = btn ? trace(btn) : () => {};
+      const ghost = ctx.ghost("mx-ghost");
+      ghost.style.background = "var(--ir-paper)";
+      const cs = spanify(ghost);
+      const stopScan = trace1(ghost, cs, T);
+      return () => {
+        stopScan(); stopTrace(); ghost.remove();
+        box.classList.remove("mx-thinking");
+        if (mx) mx.rain.release();
+      };
+    },
+
+    // During: bullet time (the rain stops dead, the old text turns green), the old letters fall apart as
+    // code, and rain streams down the paper decoding the draft where it passes. No black curtain.
+    async during(ctx, write) {
+      const T = ctx.tune, box = ctx.host, mx = box.__mx;
+      if (mx) mx.rain.freeze();
+      const ghost = ctx.ghost("mx-ghost");
+      ghost.style.background = "var(--ir-paper)";
+      const old = spanify(ghost);
+      write();
+      await frame();
+      ghost.classList.add("mx-seen");
+      await sleep(260);
+      const gr = ghost.getBoundingClientRect(), font = getComputedStyle(ctx.editor).font;
+      const code = getComputedStyle(box).getPropertyValue("--mx-code").trim() || "#00ff41";
+      const parts = fallingParts(old, gr);
+      const dec = ctx.ghost("mx-ghost mx-dec");
+      dec.style.background = "var(--ir-paper)";
+      const fresh = spanify(dec);
+      ghost.remove();
+      const dr = dec.getBoundingClientRect();
+      const cv = ctx.layer("canvas", "mx-fx"), g = cv.getContext("2d");
+      const W = cv.getBoundingClientRect().width, H = cv.getBoundingClientRect().height;
+      const chars = fresh.map((c) => { const r = c.getBoundingClientRect(); return { c, x: r.left - dr.left + r.width / 2, y: Math.min(H, r.bottom - dr.top), h: r.height, rev: -1, lock: 0 }; });
+      const step = rainDecode({ W, H, T, chars });
+      const mark = ctx.showNew ? newMark(ctx, NEW_AT, T) : null;
+      await new Promise((done) => {
+        const t0 = performance.now();
+        const draw = (now) => {
+          const t = now - t0;
+          g.clearRect(0, 0, W, H);
+          const falling = drawFalling(g, parts, t, now, font, code);
+          const busy = step(g, t, now);
+          const marking = mark ? mark.step(t) : false;
+          if ((!falling && !busy && !marking) || t > 7000) { done(); return; }
+          requestAnimationFrame(draw);
+        };
+        requestAnimationFrame(draw);
+      });
+      await sleep(120);
+      cv.remove(); dec.remove();
+      return {};
+    },
+
+    // After: no effects. The rain just goes back to its light loop; the "New" mark fades on its own.
+    after(ctx) { if (ctx.host.__mx) ctx.host.__mx.rain.release(); },
+  };
+
+  // The "New" mark starts decoding as the new text starts to arrive.
+  const NEW_AT = 420;
+  /** The "New" mark decodes in with the code rain, holds, then fades. Returns a step for the swoosh's loop. */
+  function newMark(ctx, at, T) {
+    const L = ctx.layer("div", "mx-newlayer");
+    L.style.overflow = "visible";
+    const plate = document.createElement("div");
+    plate.className = "mx-plate";
+    const letters = [..."New"].map((ch) => { const s = document.createElement("span"); s.className = "nc"; s.dataset.ch = ch; s.textContent = pickK(); return s; });
+    plate.append(...letters);
+    L.append(plate);
+    const lock = letters.map((_, i) => at + T.lockMs * (0.7 + i * 0.3 + Math.random() * 0.3));
+    let done = false;
+    return {
+      step(t) {
+        if (t < at) return true;
+        plate.classList.add("show");
+        letters.forEach((s, i) => {
+          if (t < lock[i]) { if (Math.random() < 0.35) s.textContent = pickK(); s.className = "nc on"; }
+          else if (s.className !== "nc locked") { s.textContent = s.dataset.ch; s.className = "nc locked"; }
+        });
+        if (!done && t >= Math.max(...lock)) {
+          done = true;
+          setTimeout(() => { plate.classList.add("gone"); setTimeout(() => L.remove(), 600); }, 1500);
+        }
+        return !done;
+      },
+    };
+  }
+
+  // --- ornament: starts the rain once per box, draws the rule and the band, wires typing and hover ---------
+  function ornament(box) {
+    const skin = box.querySelector(":scope > .ir-skin");
+    if (!skin) return;
+    let mx = box.__mx;
+    if (!mx) {
+      mx = box.__mx = { rain: new Rain(skin.querySelector(".sk-rain"), box) };
+      requestAnimationFrame(() => { if (mx.rain.size()) { mx.rain.prewarm(); mx.rain.boot(); } });
+      const ed = box.querySelector('[contenteditable="true"][role="textbox"]');
+      if (ed) ed.addEventListener("input", () => {
+        const sel = getSelection(), cr = mx.rain.cv.getBoundingClientRect();
+        const r = sel.rangeCount ? sel.getRangeAt(0).getBoundingClientRect() : null;
+        if (r && r.left) mx.rain.spawn(r.left - cr.left);
+        mx.rain.kick(1, 350);
+      });
+      box.querySelectorAll(SLICED).forEach(keepSliced);
+      const rf = box.querySelector(".ir-refactor");
+      if (rf) rf.addEventListener("mouseenter", () => scramble(rf, 320));
+      const send = box.querySelector(".dC .aoO");
+      if (send) send.addEventListener("mouseenter", () => scramble(send, 260));
+    } else mx.rain.resizeIfNeeded();
+    requestAnimationFrame(() => { drawStream(skin.querySelector(".sk-stream canvas"), box); drawBand(skin.querySelector(".sk-band canvas")); });
+  }
+
+  const start = () => MockupKit.start({
+    title: "Matrix",
+    note: "Final: the HUD frame, the faint looping rain, Shell buttons in VT323, the trace while it thinks and the rain decode with the New mark. Sliders tune the numbers the pack ships.",
+    options: [{ id: "hud", label: "HUD", style: "frame-hud" }],
+    variants: ["phosphor"],
+    skin: '<div class="sk-bezel"><canvas class="sk-rain"></canvas></div><i class="sk-paper"></i><i class="sk-edge"></i><i class="sk-c sk-tl"></i><i class="sk-c sk-tr"></i><i class="sk-c sk-bl"></i><i class="sk-c sk-br"></i><div class="sk-band"><canvas></canvas></div><div class="sk-stream"><canvas></canvas></div><i class="sk-led"></i>',
+    labels: { refactor: "Refactor", working: "Tracing" },
+    tune: TUNE,
+    swoosh,
+    ornament,
+  });
+  // Wait for the mono face so canvases and fixed width labels measure right.
+  (document.fonts && document.fonts.load ? Promise.all([document.fonts.load('16px "IR OCR"'), document.fonts.load('16px "IR Terminal"')]).catch(() => {}) : Promise.resolve()).then(() => {
+    start();
+    // The States and gallery sections are not dressed by the kit, so slice their labels here too.
+    const wrapAll = () => document.querySelectorAll(".ir-refactor, .ir-active-box .dC .aoO, .ir-toggle").forEach((el) => { if (!el.querySelector(":scope > .mx-lbl")) label(el); });
+    wrapAll();
+    new MutationObserver(wrapAll).observe(document.body, { childList: true, subtree: true });
+  });
+})();
+</script>
+</body>
+</html>

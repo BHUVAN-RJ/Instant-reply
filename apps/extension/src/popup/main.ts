@@ -1,5 +1,6 @@
 import { asLook, getHeadBand, getLook, getNewMark, setHeadBand, setLook, setNewMark } from "../appearance";
 import { THEME_LIST } from "../theme-list";
+import type { Message, StatsView } from "../messages";
 import { DEFAULT_MODEL, OPENROUTER_KEY_URL, getSettings, saveSettings } from "../settings";
 
 const form = document.querySelector<HTMLFormElement>("#form")!;
@@ -85,5 +86,29 @@ newMarkInput.addEventListener("change", async () => void setNewMark({ ...(await 
 const headBandInput = document.querySelector<HTMLInputElement>("#head-band")!;
 void getHeadBand().then((on) => (headBandInput.checked = on));
 headBandInput.addEventListener("change", () => void setHeadBand(headBandInput.checked));
+
+// Usage counts shared with whoever handed out this copy. Hidden when the build has no stats URL.
+const statsBox = document.querySelector<HTMLFieldSetElement>("#stats")!;
+const statsTotals = document.querySelector<HTMLParagraphElement>("#stats-totals")!;
+const statsSharing = document.querySelector<HTMLInputElement>("#stats-sharing")!;
+const statsName = document.querySelector<HTMLInputElement>("#stats-name")!;
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+function renderStats(view: StatsView): void {
+  statsBox.hidden = !view.enabled;
+  statsTotals.textContent = `${plural(view.totals.refactors, "Refactor")}, ${plural(view.totals.sent, "email")} sent.`;
+  statsSharing.checked = view.sharing;
+  document.querySelector("#stats-share-label")!.textContent = `Share these counts with ${view.owner}`;
+  statsName.value = view.name;
+  statsName.placeholder = "Your Gmail name";
+  document.querySelector("#stats-hint")!.textContent =
+    "Only counts are shared: how many Refactors per email and how many emails sent. Never the text, who it is to, or your key.";
+}
+
+const updateStats = async (change: { name?: string; sharing?: boolean }) =>
+  renderStats(await chrome.runtime.sendMessage({ type: "stats-update", change } satisfies Message));
+statsSharing.addEventListener("change", () => void updateStats({ sharing: statsSharing.checked }));
+statsName.addEventListener("change", () => void updateStats({ name: statsName.value.trim() }));
+void chrome.runtime.sendMessage({ type: "stats-get" } satisfies Message).then(renderStats);
 
 void render();

@@ -1,20 +1,33 @@
-import { BASE_RULES, createAgent, type Agent, type Thread } from "@instant-reply/core";
+import { BASE_RULES, createAgent, forgetOldData, type Agent, type Thread } from "@instant-reply/core";
 import { createChromeStore } from "../adapters/chrome-store";
 import { createOpenRouter } from "../adapters/openrouter";
-import type { DraftResponse, Message, VoiceOverview, VoiceResponse } from "../messages";
+import type { DraftResponse, Message, StatsView, VoiceOverview, VoiceResponse } from "../messages";
 import { contextProviders, eventSinks } from "../plugins";
-import { getIdentity, resolvedSignature } from "../identity";
+import { getIdentity, resolvedName, resolvedSignature } from "../identity";
 import { getSettings, saveSettings } from "../settings";
+import { STATS_KEY, STATS_OWNER, STATS_URL, createStats, type StatsState } from "../stats";
 
 // Service worker: the composition root. Wires the core agent to Chrome storage,
 // OpenRouter and any plugins, and is the only place that touches the API key.
 
 const store = createChromeStore();
 
+const stats = createStats({
+  url: STATS_URL,
+  load: async () => (await chrome.storage.local.get(STATS_KEY))[STATS_KEY] as Partial<StatsState> | undefined,
+  save: (state) => chrome.storage.local.set({ [STATS_KEY]: state }),
+  fallbackName: async () => resolvedName(await getIdentity()),
+});
+const sinks = [...eventSinks, stats.sink];
+// Anything left from a failed send goes out when the worker wakes.
+void stats.flush();
+// Email text older than 30 days is forgotten each time the worker wakes.
+void forgetOldData(store, Date.now()).catch((error) => console.error("[instant-reply] forgetting old data failed", error));
+
 async function agentFromSettings(): Promise<Agent | null> {
   const settings = await getSettings();
   if (!settings.apiKey) return null;
-  return createAgent({ store, llm: createOpenRouter(settings), contextProviders, eventSinks, learning: settings.learning });
+  return createAgent({ store, llm: createOpenRouter(settings), contextProviders, eventSinks: sinks, learning: settings.learning });
 }
 
 /** Toggling, recording sends and reading the voice need no key, so they use an agent without a model. */
@@ -24,7 +37,7 @@ async function offlineAgent(): Promise<Agent> {
     store,
     llm: { complete: () => Promise.reject(new Error("no model configured")) },
     contextProviders,
-    eventSinks,
+    eventSinks: sinks,
     learning,
   });
 }
@@ -96,6 +109,10 @@ async function sent(msg: Extract<Message, { type: "sent" }>): Promise<void> {
   await agent.recordSent(msg.threadId, msg.sentText);
 }
 
+function statsView(state: StatsState): StatsView {
+  return { name: state.name, sharing: state.sharing, totals: state.totals, enabled: Boolean(STATS_URL), owner: STATS_OWNER };
+}
+
 async function openSettings(): Promise<void> {
   try {
     await chrome.action.openPopup();
@@ -126,6 +143,12 @@ chrome.runtime.onMessage.addListener((msg: Message, _sender, sendResponse) => {
     case "voice-reset":
     case "set-learning":
       void voice(msg).then(sendResponse);
+      return true;
+    case "stats-get":
+      void stats.get().then((state) => sendResponse(statsView(state)));
+      return true;
+    case "stats-update":
+      void stats.update(msg.change).then((state) => sendResponse(statsView(state)));
       return true;
   }
 });

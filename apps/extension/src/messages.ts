@@ -11,7 +11,9 @@ export type Message =
   | { type: "voice-chat"; message: string }
   | { type: "voice-learn" }
   | { type: "voice-reset" }
-  | { type: "set-learning"; enabled: boolean };
+  | { type: "set-learning"; enabled: boolean }
+  | { type: "stats-get" }
+  | { type: "stats-update"; change: { name?: string; sharing?: boolean } };
 
 export type DraftResponse =
   | { ok: true; draft: string }
@@ -28,3 +30,13 @@ export interface VoiceOverview {
 export type VoiceResponse =
   | { ok: true; overview: VoiceOverview; reply?: string; changed?: boolean }
   | { ok: false; error: "no-key" | "failed"; detail?: string };
+
+/** What the popup shows about shared usage counts. */
+export interface StatsView {
+  name: string;
+  sharing: boolean;
+  totals: { refactors: number; sent: number };
+  /** False when the build has no stats URL, so nothing can be shared. */
+  enabled: boolean;
+  owner: string;
+}

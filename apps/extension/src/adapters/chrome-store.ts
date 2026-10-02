@@ -20,6 +20,9 @@ export function createChromeStore(): Store {
     async saveVoice(voice) {
       await chrome.storage.local.set({ [VOICE_KEY]: voice });
     },
+    async deleteSession(threadId) {
+      await chrome.storage.local.remove(SESSION_PREFIX + threadId);
+    },
     async listSessions() {
       const all = await chrome.storage.local.get(null);
       return Object.entries(all).flatMap(([key, value]) => (key.startsWith(SESSION_PREFIX) ? [value as ThreadSession] : []));

@@ -10,6 +10,8 @@ export interface Store {
   saveVoice(voice: VoiceProfile): Promise<void>;
   /** Every stored session. Optional; used once to learn from drafts made before learning existed. */
   listSessions?(): Promise<ThreadSession[]>;
+  /** Optional; used to forget threads older than the retention period. */
+  deleteSession?(threadId: string): Promise<void>;
 }
 
 export interface LlmMessage {

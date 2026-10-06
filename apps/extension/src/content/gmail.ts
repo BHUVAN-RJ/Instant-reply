@@ -14,6 +14,7 @@ import { boxLayout, ensureSkin, layoutSkin, setIfChanged, themeOf } from "./them
 import { buildStylesheet } from "./theme/stylesheet";
 import { THEMES, themeById } from "./themes";
 import { readMessages } from "./thread";
+import { initScrollGuard } from "./scroll-guard";
 import { initTodoButton } from "./todo-button";
 
 // Runs inside Gmail:
@@ -427,5 +428,6 @@ initComments((box) => {
 });
 new MutationObserver(scheduleSync).observe(document.body, { childList: true, subtree: true });
 initTodoButton();
+initScrollGuard();
 addEventListener("resize", scheduleSync);
 scheduleSync();

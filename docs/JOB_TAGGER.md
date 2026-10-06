@@ -10,6 +10,7 @@ Status (2026-10-06): live. A Google Apps Script (`tools/job-tagger/Code.gs`) run
 - Not seen on real mail yet: `REPLY NEEDED` (no recruiter reply since the start date) and `Jobs/Submitted`. Rules, `TO DO`, `Jobs/Applied` and `Jobs/Rejected` were checked against a dry run on 2026-10-01 and looked right to the user.
 - Gmail Multiple Inboxes sections `label:to-do` and `label:reply-needed` above the inbox: suggested, not confirmed as set up.
 - Learning is limited on purpose: the last 20 corrections go into the prompt as examples and two matching corrections for a sender become a sender rule. No retraining and no rewriting of the rules or the prompt.
+- Gmail jumped the inbox back to the top when the tagger labelled or archived threads while the user was scrolled down (reported 2026-10-06). The extension's scroll guard (`apps/extension/src/content/scroll-guard.ts`) puts the list back when it jumps to the top with no input from the user in the last second and the view unchanged. Not checked live yet; if Gmail swaps the list element instead of scrolling it, the guard does not see the jump.
 - Privacy: never search or read the user's mailbox through the Gmail connector without asking first, and then headers only where possible.
 
 ## Goal
@@ -21,7 +22,7 @@ Read job related email from 2026-09-30 onward (and everything new after that), a
 
 Everything else stays as it is. Hard rules:
 
-- Only job related email is touched: adding or removing the tagger's own labels, archiving `Jobs/Applied` threads, starring mail that gets `REPLY NEEDED` (both asked for on 2026-10-03). Never delete, send, or change read state.
+- Only job related email is touched: adding or removing the tagger's own labels, archiving `Jobs/Applied` threads, starring mail that gets `REPLY NEEDED` (both asked for on 2026-10-03), archiving `Jobs/Rejected` threads (asked for on 2026-10-06). Never delete, send, or change read state.
 - An email I have not opened stays unread after the tagger reads it.
 - When I fix a tag (remove it or add it by hand), the tagger learns from that.
 
@@ -115,7 +116,7 @@ Gmail does not let an extension or the API reorder the inbox. Two ways to get "T
 
 8. "To do done" button (optional): add Script Property `TAGGER_TOKEN` (same value as `VITE_TAGGER_TOKEN` in `apps/extension/.env.local`), then Deploy > New deployment > Web app, Execute as Me, access Anyone; put the URL in `.env.local` as `VITE_TAGGER_URL` and `npm run build`. In Gmail, a thread tagged `TO DO` shows a floating square "Done" button (drag it anywhere; the spot is remembered). Clicking it glows green and takes the label off through the script, logged as done so it is not learned as a wrong tag. After changing the script, Deploy > Manage deployments > Edit > New version keeps the URL.
 
-What it writes: its five labels on job threads (`REPLY NEEDED` also stars the email; `Jobs/Applied` threads are archived out of the inbox, decided 2026-10-03; Gmail brings a thread back to the inbox when a new message arrives) (one per thread, replaced when a newer message changes it; a "none" answer keeps the label already there), "unread" put back if reading ever cleared it, and rows in the Sheet. Corrections are checked hourly: a `Jobs/` label I move, remove or add by hand within 30 days is saved to Corrections, the last 20 go into the model prompt as examples, and two matching corrections for one sender become a rule for that sender. Reading stops after 3 minutes or 80 emails for the model, so the model always gets its turn; model calls go 8 at a time; whatever is left goes in the next run. A model error is retried on the next runs, up to 3 times.
+What it writes: its five labels on job threads (`REPLY NEEDED` also stars the email; `Jobs/Applied` threads are archived out of the inbox, decided 2026-10-03, and `Jobs/Rejected` threads too, decided 2026-10-06 for new rejections only (older ones were left in the inbox); Gmail brings a thread back to the inbox when a new message arrives) (one per thread, replaced when a newer message changes it; a "none" answer keeps the label already there), "unread" put back if reading ever cleared it, and rows in the Sheet. Corrections are checked hourly: a `Jobs/` label I move, remove or add by hand within 30 days is saved to Corrections, the last 20 go into the model prompt as examples, and two matching corrections for one sender become a rule for that sender. Reading stops after 3 minutes or 80 emails for the model, so the model always gets its turn; model calls go 8 at a time; whatever is left goes in the next run. A model error is retried on the next runs, up to 3 times.
 
 ## Where it runs
 

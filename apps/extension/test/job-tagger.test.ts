@@ -219,18 +219,18 @@ describe("job tagger runs", () => {
     expect(w.created()).toBe(1);
   });
 
-  it("live run adds labels, archives thank you mail, keeps mail unread, and does not repeat itself", () => {
+  it("live run adds labels, archives thank you and rejection mail, keeps mail unread, and does not repeat itself", () => {
     const w = world();
     w.store.set("DRY_RUN", "false");
     w.call("setup");
     w.call("runOnce", Date.now());
     expect(w.writes.sort()).toEqual([
-      "add t1 Jobs/Applied", "add t2 Jobs/Rejected", "add t4 Jobs/Applied", "archive t1", "archive t4",
+      "add t1 Jobs/Applied", "add t2 Jobs/Rejected", "add t4 Jobs/Applied", "archive t1", "archive t2", "archive t4",
     ]);
     expect(w.threads.flatMap((t) => t.getMessages()).every((m) => m.isUnread())).toBe(true);
     w.call("runOnce", Date.now());
     expect(w.modelCalls).toHaveLength(2);
-    expect(w.writes).toHaveLength(5);
+    expect(w.writes).toHaveLength(6);
   });
 
   it("marks mail that needs a reply loudly: red top level label and a star", () => {
@@ -254,7 +254,7 @@ describe("job tagger runs", () => {
       refresh() { return this; }, markUnread: () => {},
     });
     w.call("runOnce", Date.now());
-    expect(w.writes.slice(-2)).toEqual(["remove t1 Jobs/Applied", "add t1 Jobs/Rejected"]);
+    expect(w.writes.slice(-3)).toEqual(["remove t1 Jobs/Applied", "add t1 Jobs/Rejected", "archive t1"]);
   });
 
   it("learns when I move or remove a label", () => {

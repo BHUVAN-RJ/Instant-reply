@@ -5,8 +5,8 @@
 //
 // Reads mail received since START and puts one label on job threads. Rules settle the clear cases;
 // a cheap OpenRouter model decides the rest. Reading mail never marks it read. The only changes it
-// ever makes to mail: adding and removing its five labels (setJobLabel), archiving "applied"
-// threads (thank you for applying mail stays findable under Jobs/Applied, out of the inbox),
+// ever makes to mail: adding and removing its five labels (setJobLabel), archiving "applied" and
+// "rejected" threads (they stay findable under Jobs/Applied and Jobs/Rejected, out of the inbox),
 // starring mail that needs a reply, and putting back "unread" if Gmail ever flipped it while
 // reading. DRY_RUN (the default) changes nothing in Gmail and only writes what it would do to the
 // Log sheet.
@@ -27,6 +27,8 @@ const LABELS = {
   "rejected": "Jobs/Rejected",
 };
 const CHOICES = [...Object.keys(LABELS), "none"];
+// Labels whose threads leave the inbox: nothing left to do with them.
+const ARCHIVED = ["applied", "rejected"];
 const DEFAULT_MODEL = "deepseek/deepseek-v4-flash";
 const DEFAULT_START = "2026-09-30T00:00:00-07:00";
 
@@ -419,7 +421,7 @@ function apply(cfg, message, thread, mail, label, source, reason) {
   }
   if (!cfg.dryRun && LABELS[label]) {
     setJobLabel(thread, LABELS[label]);
-    if (label === "applied") thread.moveToArchive();
+    if (ARCHIVED.includes(label)) thread.moveToArchive();
     if (label === "to respond") message.star();
   }
   return [iso(), modeOf(cfg), message.getId(), thread.getId(), mail.from, mail.subject, label, source, reason];

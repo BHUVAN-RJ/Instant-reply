@@ -6,6 +6,7 @@ import { contextProviders, eventSinks } from "../plugins";
 import { getIdentity, resolvedName, resolvedSignature } from "../identity";
 import { getSettings, saveSettings } from "../settings";
 import { STATS_KEY, STATS_OWNER, STATS_URL, createStats, type StatsState } from "../stats";
+import { askTagger } from "../job-tagger";
 
 // Service worker: the composition root. Wires the core agent to Chrome storage,
 // OpenRouter and any plugins, and is the only place that touches the API key.
@@ -149,6 +150,10 @@ chrome.runtime.onMessage.addListener((msg: Message, _sender, sendResponse) => {
       return true;
     case "stats-update":
       void stats.update(msg.change).then((state) => sendResponse(statsView(state)));
+      return true;
+    case "job-status":
+    case "job-done":
+      void askTagger(msg.type === "job-done" ? "done" : "status", msg.thread).then(sendResponse);
       return true;
   }
 });

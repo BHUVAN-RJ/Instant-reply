@@ -13,7 +13,12 @@ export type Message =
   | { type: "voice-reset" }
   | { type: "set-learning"; enabled: boolean }
   | { type: "stats-get" }
-  | { type: "stats-update"; change: { name?: string; sharing?: boolean } };
+  | { type: "stats-update"; change: { name?: string; sharing?: boolean } }
+  | { type: "job-status"; thread: string }
+  | { type: "job-done"; thread: string };
+
+/** The job tagger's label on a thread ("to do", "applied", ...; "" for none), or why it is unknown. */
+export type JobResponse = { ok: true; label: string } | { ok: false; error: string };
 
 export type DraftResponse =
   | { ok: true; draft: string }

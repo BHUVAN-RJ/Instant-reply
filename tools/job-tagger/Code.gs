@@ -1,21 +1,27 @@
-// Job email tagger. Paste into the Apps Script editor of a Google Sheet (Extensions > Apps Script),
-// set the Script Properties, run setup() once, then run() (docs/JOB_TAGGER.md, "Install").
+// Job email tagger. Paste into a new project at script.google.com, set the Script Properties, run
+// setup() once, then run() (docs/JOB_TAGGER.md, "Install"). setup() creates a Google Sheet named
+// "Job tagger log" in Drive: the tagger's memory (what it handled, what it set, my corrections) and
+// the place to review a dry run.
 //
-// Reads mail received since START and puts one Jobs/ label on job threads. Rules settle the clear
-// cases; a cheap OpenRouter model decides the rest. Reading mail never marks it read. The only
-// changes it ever makes to mail are adding and removing the five Jobs/ labels (setJobLabel), and
-// putting back "unread" if Gmail ever flipped it while reading. DRY_RUN (the default) changes
-// nothing in Gmail and only writes what it would do to the Log sheet.
+// Reads mail received since START and puts one label on job threads. Rules settle the clear cases;
+// a cheap OpenRouter model decides the rest. Reading mail never marks it read. The only changes it
+// ever makes to mail: adding and removing its five labels (setJobLabel), archiving "applied"
+// threads (thank you for applying mail stays findable under Jobs/Applied, out of the inbox),
+// starring mail that needs a reply, and putting back "unread" if Gmail ever flipped it while
+// reading. DRY_RUN (the default) changes nothing in Gmail and only writes what it would do to the
+// Log sheet.
 //
 // Script Properties:
 //   OPENROUTER_KEY  required
 //   MODEL           default deepseek/deepseek-v4-flash
 //   DRY_RUN         "true" (default) or "false"
 //   START           default 2026-09-30T00:00:00-07:00
+//   TAGGER_TOKEN    shared secret for the extension's "To do done" button (doPost); the same value
+//                   goes in apps/extension/.env.local as VITE_TAGGER_TOKEN
 
 const LABELS = {
-  "to do": "Jobs/To do",
-  "to respond": "Jobs/To respond",
+  "to do": "TO DO", // top level, so one click shows every to do
+  "to respond": "REPLY NEEDED", // top level and red, so it is loud in the inbox
   "submitted": "Jobs/Submitted",
   "applied": "Jobs/Applied",
   "rejected": "Jobs/Rejected",
@@ -40,7 +46,9 @@ const LOG_HEADER = ["at", "mode", "messageId", "threadId", "from", "subject", "l
 const CORRECTIONS = "Corrections";
 const CORRECTIONS_HEADER = ["at", "threadId", "from", "subject", "snippet", "tagger", "you"];
 
-const RUN_BUDGET_MS = 4.5 * 60 * 1000; // Apps Script stops a run at 6 minutes
+const RUN_BUDGET_MS = 5 * 60 * 1000; // Apps Script stops a run at 6 minutes
+const READ_BUDGET_MS = 3 * 60 * 1000; // reading stops here so the model always gets its turn
+const MAX_MODEL_PER_RUN = 80;
 const MODEL_BATCH = 8;
 const BODY_CHARS = 2500;
 const MAX_ERRORS = 3;
@@ -240,7 +248,51 @@ function setup() {
     if (!GmailApp.getUserLabelByName(name)) GmailApp.createLabel(name);
   }
   const cfg = config();
+  Logger.log(`Log sheet: ${book().getUrl()}`);
   Logger.log(`Ready. Model ${cfg.model}, ${cfg.dryRun ? "DRY RUN (no labels change)" : "LIVE"}, from ${cfg.start.toISOString()}.`);
+}
+
+/**
+ * Web app for the extension's "To do done" button (deploy: Execute as Me, access Anyone; the token
+ * keeps others out). Body: { token, action: "status" | "done", thread } with Gmail's hex thread id.
+ * status answers the thread's label key; done takes TO DO off and logs it as done, so the
+ * correction check does not read it as the tagger being wrong.
+ */
+function doPost(e) {
+  const reply = (body) => ContentService.createTextOutput(JSON.stringify(body)).setMimeType(ContentService.MimeType.JSON);
+  let req;
+  try {
+    req = JSON.parse(e.postData.contents);
+  } catch (err) {
+    return reply({ ok: false, error: "bad request" });
+  }
+  const token = PropertiesService.getScriptProperties().getProperty("TAGGER_TOKEN");
+  if (!token || req.token !== token) return reply({ ok: false, error: "bad token" });
+  const thread = /^[0-9a-f]{6,20}$/.test(String(req.thread)) ? GmailApp.getThreadById(req.thread) : null;
+  if (!thread) return reply({ ok: false, error: "no thread" });
+
+  if (req.action === "status") return reply({ ok: true, label: currentJobKey(thread) });
+  if (req.action !== "done") return reply({ ok: false, error: "bad action" });
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    if (currentJobKey(thread) === "to do") {
+      setJobLabel(thread, "");
+      const last = thread.getMessages().slice(-1)[0];
+      appendRows(LOG, LOG_HEADER, [[iso(), "live", last.getId(), thread.getId(), last.getFrom(), last.getSubject(), "", "done", "To do done (button)"]]);
+    }
+    return reply({ ok: true, label: currentJobKey(thread) });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** One off: archives "applied" threads tagged before archiving existed. */
+function archiveApplied() {
+  const threads = GmailApp.search(`label:${searchName(LABELS.applied)} in:inbox`, 0, 500);
+  for (const thread of threads) thread.moveToArchive();
+  Logger.log(`Archived ${threads.length} applied threads.`);
 }
 
 /** Runs every 10 minutes once startSchedule() is run. */
@@ -299,7 +351,7 @@ function runOnce(startedAt) {
   let finished = true;
 
   for (const thread of searchThreads(since)) {
-    if (Date.now() - startedAt > RUN_BUDGET_MS) { finished = false; break; }
+    if (Date.now() - startedAt > READ_BUDGET_MS || pending.length >= MAX_MODEL_PER_RUN) { finished = false; break; }
     const messages = thread.getMessages();
     const incoming = messages.filter((m) =>
       m.getDate().getTime() >= cfg.start.getTime() && !me.has(senderAddress(m.getFrom())) && !seen.has(m.getId()));
@@ -365,7 +417,11 @@ function apply(cfg, message, thread, mail, label, source, reason) {
     const kept = currentJobKey(thread);
     if (kept) return [iso(), modeOf(cfg), message.getId(), thread.getId(), mail.from, mail.subject, kept, source, `kept; ${reason}`];
   }
-  if (!cfg.dryRun && LABELS[label]) setJobLabel(thread, LABELS[label]);
+  if (!cfg.dryRun && LABELS[label]) {
+    setJobLabel(thread, LABELS[label]);
+    if (label === "applied") thread.moveToArchive();
+    if (label === "to respond") message.star();
+  }
   return [iso(), modeOf(cfg), message.getId(), thread.getId(), mail.from, mail.subject, label, source, reason];
 }
 
@@ -424,7 +480,7 @@ function checkCorrections(cfg, log) {
   const now = new Map(); // threadId -> label key from the current Gmail labels
   const since = Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000);
   for (const [key, name] of Object.entries(LABELS)) {
-    const search = `label:${name.toLowerCase().replace(/[\/ ]/g, "-")} after:${since}`;
+    const search = `label:${searchName(name)} after:${since}`;
     for (const thread of GmailApp.search(search, 0, 500)) now.set(thread.getId(), key);
   }
   const fixes = [];
@@ -517,6 +573,8 @@ function config() {
   };
 }
 
+/** "Jobs/Applied" -> "jobs-applied", the form Gmail search uses for a label. */
+const searchName = (name) => name.toLowerCase().replace(/[\/ ]/g, "-");
 const modeOf = (cfg) => (cfg.dryRun ? "dry" : "live");
 const iso = () => new Date().toISOString();
 
@@ -524,11 +582,23 @@ function logRow(cfg, message, thread, label, source, reason) {
   return [iso(), modeOf(cfg), message.getId(), thread.getId(), message.getFrom(), message.getSubject(), label, source, reason];
 }
 
+/** The log spreadsheet: the one this script is bound to, else one it created and remembers. */
+function book() {
+  const active = SpreadsheetApp.getActiveSpreadsheet && SpreadsheetApp.getActiveSpreadsheet();
+  if (active) return active;
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty("SHEET_ID");
+  if (id) return SpreadsheetApp.openById(id);
+  const created = SpreadsheetApp.create("Job tagger log");
+  props.setProperty("SHEET_ID", created.getId());
+  return created;
+}
+
 function sheet(name, header) {
-  const book = SpreadsheetApp.getActiveSpreadsheet();
-  let s = book.getSheetByName(name);
+  const b = book();
+  let s = b.getSheetByName(name);
   if (!s) {
-    s = book.insertSheet(name);
+    s = b.insertSheet(name);
     s.getRange(1, 1, 1, header.length).setValues([header]);
     s.setFrozenRows(1);
   }

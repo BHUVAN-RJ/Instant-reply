@@ -18,7 +18,7 @@ function fakeWorld(threadsIn: { id: string; labels?: string[]; messages: Msg[] }
     if (!labels.has(name)) labels.set(name, { getName: () => name });
     return labels.get(name)!;
   };
-  for (const name of ["Jobs/To do", "Jobs/To respond", "Jobs/Submitted", "Jobs/Applied", "Jobs/Rejected"]) label(name);
+  for (const name of ["TO DO", "REPLY NEEDED", "Jobs/Submitted", "Jobs/Applied", "Jobs/Rejected"]) label(name);
 
   const writes: string[] = [];
   const threads = threadsIn.map((t) => {
@@ -34,6 +34,7 @@ function fakeWorld(threadsIn: { id: string; labels?: string[]; messages: Msg[] }
         isUnread: () => unread,
         refresh: () => msg,
         markUnread: () => { writes.push(`unread ${m.id}`); unread = true; },
+        star: () => writes.push(`star ${m.id}`),
       };
       return msg;
     });
@@ -44,6 +45,7 @@ function fakeWorld(threadsIn: { id: string; labels?: string[]; messages: Msg[] }
       getLabels: () => [...own].map(label),
       addLabel: (l: { getName: () => string }) => { writes.push(`add ${t.id} ${l.getName()}`); own.add(l.getName()); },
       removeLabel: (l: { getName: () => string }) => { writes.push(`remove ${t.id} ${l.getName()}`); own.delete(l.getName()); },
+      moveToArchive: () => writes.push(`archive ${t.id}`),
     };
   });
 
@@ -61,6 +63,13 @@ function fakeWorld(threadsIn: { id: string; labels?: string[]; messages: Msg[] }
     };
   };
 
+  let created = 0;
+  const spreadsheet = {
+    getId: () => "sheet-1",
+    getUrl: () => "https://docs.google.com/spreadsheets/d/sheet-1",
+    getSheetByName: (n: string) => (sheets.has(n) ? sheetApi(n) : null),
+    insertSheet: (n: string) => { sheets.set(n, []); return sheetApi(n); },
+  };
   const store = new Map(Object.entries({ OPENROUTER_KEY: "k", ...props }));
   const modelCalls: { model: string; provider: unknown; email: string }[] = [];
   let answer: (email: string) => string = (email) => (email.includes("not moving forward") ? "rejected" : "applied");
@@ -68,7 +77,7 @@ function fakeWorld(threadsIn: { id: string; labels?: string[]; messages: Msg[] }
   const ctx = vm.createContext({
     Logger: { log: () => {} },
     Session: { getEffectiveUser: () => ({ getEmail: () => ME }) },
-    LockService: { getScriptLock: () => ({ tryLock: () => true, releaseLock: () => {} }) },
+    LockService: { getScriptLock: () => ({ tryLock: () => true, waitLock: () => {}, releaseLock: () => {} }) },
     PropertiesService: {
       getScriptProperties: () => ({
         getProperty: (k: string) => store.get(k) ?? null,
@@ -76,10 +85,10 @@ function fakeWorld(threadsIn: { id: string; labels?: string[]; messages: Msg[] }
       }),
     },
     SpreadsheetApp: {
-      getActiveSpreadsheet: () => ({
-        getSheetByName: (n: string) => (sheets.has(n) ? sheetApi(n) : null),
-        insertSheet: (n: string) => { sheets.set(n, []); return sheetApi(n); },
-      }),
+      // A standalone script: no bound Sheet, so the tagger creates its own once and reopens it.
+      getActiveSpreadsheet: () => null,
+      create: () => { created++; store.set("created", "1"); return spreadsheet; },
+      openById: () => spreadsheet,
     },
     GmailApp: {
       getAliases: () => [],
@@ -92,6 +101,10 @@ function fakeWorld(threadsIn: { id: string; labels?: string[]; messages: Msg[] }
         if (!m) return [...threads];
         return threads.filter((t) => [...t.own].some((n) => n.toLowerCase().replace(/[/ ]/g, "-") === m[1]));
       },
+    },
+    ContentService: {
+      MimeType: { JSON: "json" },
+      createTextOutput: (text: string) => ({ setMimeType: () => JSON.parse(text) }),
     },
     UrlFetchApp: {
       fetchAll: (requests: { payload: string }[]) =>
@@ -108,7 +121,7 @@ function fakeWorld(threadsIn: { id: string; labels?: string[]; messages: Msg[] }
   const call = (fn: string, ...args: unknown[]) => (ctx[fn] as (...a: unknown[]) => unknown)(...args);
   const log = () => (sheets.get("Log") ?? []).slice(1).map((r) => ({ from: r[4], label: r[6], source: r[7], mode: r[1] }));
   return {
-    call, writes, modelCalls, log, threads, store,
+    call, writes, modelCalls, log, threads, store, created: () => created,
     setAnswer: (fn: (email: string) => string) => (answer = fn),
     corrections: () => (sheets.get("Corrections") ?? []).slice(1),
   };
@@ -200,21 +213,34 @@ describe("job tagger runs", () => {
     // Only the two Greenhouse emails reach the model, both with private routing.
     expect(w.modelCalls).toHaveLength(2);
     expect(w.modelCalls.every((c) => c.model === "deepseek/deepseek-v4-flash" && JSON.stringify(c.provider) === JSON.stringify(PRIVATE_ROUTING))).toBe(true);
-    // A second dry run replaces the first one's rows.
+    // A second dry run replaces the first one's rows, in the same log sheet.
     w.call("runOnce", Date.now());
     expect(w.log()).toHaveLength(4);
+    expect(w.created()).toBe(1);
   });
 
-  it("live run only adds Jobs labels, keeps mail unread, and does not repeat itself", () => {
+  it("live run adds labels, archives thank you mail, keeps mail unread, and does not repeat itself", () => {
     const w = world();
     w.store.set("DRY_RUN", "false");
     w.call("setup");
     w.call("runOnce", Date.now());
-    expect(w.writes.sort()).toEqual(["add t1 Jobs/Applied", "add t2 Jobs/Rejected", "add t4 Jobs/Applied"]);
+    expect(w.writes.sort()).toEqual([
+      "add t1 Jobs/Applied", "add t2 Jobs/Rejected", "add t4 Jobs/Applied", "archive t1", "archive t4",
+    ]);
     expect(w.threads.flatMap((t) => t.getMessages()).every((m) => m.isUnread())).toBe(true);
     w.call("runOnce", Date.now());
     expect(w.modelCalls).toHaveLength(2);
-    expect(w.writes).toHaveLength(3);
+    expect(w.writes).toHaveLength(5);
+  });
+
+  it("marks mail that needs a reply loudly: red top level label and a star", () => {
+    const w = fakeWorld([{ id: "r1", messages: [{
+      id: "rm1", from: "Trevor <trevor@terros.na.teamtailor-mail.com>", subject: "Follow-up Questions",
+      body: "Could you tell me your availability this week?", date: at,
+    }] }], { DRY_RUN: "false" });
+    w.setAnswer(() => "to respond");
+    w.call("runOnce", Date.now());
+    expect(w.writes.sort()).toEqual(["add r1 REPLY NEEDED", "star rm1"]);
   });
 
   it("moves a thread to its new label when a new message changes it", () => {
@@ -236,7 +262,7 @@ describe("job tagger runs", () => {
     w.store.set("DRY_RUN", "false");
     w.call("runOnce", Date.now());
     w.threads[0].own.delete("Jobs/Applied");
-    w.threads[0].own.add("Jobs/To do");
+    w.threads[0].own.add("TO DO");
     w.threads[3].own.delete("Jobs/Applied");
     w.store.set("lastCorrectionCheck", "0");
     w.call("runOnce", Date.now());
@@ -246,6 +272,28 @@ describe("job tagger runs", () => {
     w.store.set("lastCorrectionCheck", "0");
     w.call("runOnce", Date.now());
     expect(w.corrections()).toHaveLength(2);
+  });
+
+  it("stops reading in time to ask the model about what it already read", () => {
+    const many = Array.from({ length: 100 }, (_, i) => ({ id: `t${i}`, messages: [greenhouse(`m${i}`, "received")] }));
+    const w = fakeWorld(many);
+    w.call("runOnce", Date.now());
+    expect(w.modelCalls).toHaveLength(80);
+    expect(w.log().filter((r) => r.source === "model")).toHaveLength(80);
+  });
+
+  it("takes To do off through the web app when the button asks, and does not count it as a correction", () => {
+    const w = fakeWorld([{ id: "a1b2c3d4", labels: ["TO DO"], messages: [greenhouse("m9", "please take the test")] }], {
+      DRY_RUN: "false", TAGGER_TOKEN: "secret",
+    });
+    const post = (body: object) => JSON.parse(JSON.stringify(w.call("doPost", { postData: { contents: JSON.stringify(body) } })));
+    expect(post({ token: "wrong", action: "done", thread: "a1b2c3d4" })).toEqual({ ok: false, error: "bad token" });
+    expect(post({ token: "secret", action: "status", thread: "a1b2c3d4" })).toEqual({ ok: true, label: "to do" });
+    expect(post({ token: "secret", action: "done", thread: "a1b2c3d4" })).toEqual({ ok: true, label: "" });
+    expect(w.writes).toEqual(["remove a1b2c3d4 TO DO"]);
+    w.store.set("lastCorrectionCheck", "0");
+    w.call("runOnce", Date.now());
+    expect(w.corrections()).toHaveLength(0);
   });
 
   it("refuses to touch any label that is not a Jobs label", () => {

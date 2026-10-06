@@ -14,6 +14,7 @@ import { boxLayout, ensureSkin, layoutSkin, setIfChanged, themeOf } from "./them
 import { buildStylesheet } from "./theme/stylesheet";
 import { THEMES, themeById } from "./themes";
 import { readMessages } from "./thread";
+import { initTodoButton } from "./todo-button";
 
 // Runs inside Gmail:
 // - An "Instant Reply" switch in every reply box turns the agent on or off for that thread (every
@@ -425,5 +426,6 @@ initComments((box) => {
   if (button && !button.disabled && button.textContent !== refactorLabel(box)) button.textContent = refactorLabel(box);
 });
 new MutationObserver(scheduleSync).observe(document.body, { childList: true, subtree: true });
+initTodoButton();
 addEventListener("resize", scheduleSync);
 scheduleSync();
